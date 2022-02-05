@@ -34,7 +34,7 @@
 	.define	INCLUDE_KARL_TYPES_INC $01
 
 ;	Debugging:  Show raster time usage on border
-	.define	DEBUG_RASTERTIME	1
+	.define	DEBUG_RASTERTIME	0
 
 ;	Debugging:  Don't yeild to IRQ again after suspend
 	.define	DEBUG_NOYIELDIRQ	0

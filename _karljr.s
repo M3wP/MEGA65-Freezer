@@ -315,7 +315,8 @@ _KarlObjIncludeState:
 
 		STA	karl_temp0
 
-		AND	#STATE_DIRTY
+;		AND	#STATE_DIRTY
+		BIT	#STATE_DIRTY
 		BEQ	@test0
 
 		LDA	#$01
@@ -324,8 +325,9 @@ _KarlObjIncludeState:
 		JMP	@cont0
 
 @test0:
-		LDA	karl_temp0
-		AND	#STATE_CHANGED
+;		LDA	karl_temp0
+;		AND	#STATE_CHANGED
+		BIT	#STATE_CHANGED
 		BEQ	@cont0
 
 		LDA	#$01
@@ -339,11 +341,13 @@ _KarlObjIncludeState:
 		PHA
 
 		LDA	karl_temp0
-		AND	#(STATE_DIRTY | STATE_PREPARED)
+;		AND	#(STATE_DIRTY | STATE_PREPARED)
+		BIT	#(STATE_DIRTY | STATE_PREPARED)
 		BEQ	@cont1
 
-		LDA	karl_temp0
-		AND	#STATE_CHANGED
+;		LDA	karl_temp0
+;		AND	#STATE_CHANGED
+		BIT	#STATE_CHANGED
 		BEQ	@update
 
 @cont1:

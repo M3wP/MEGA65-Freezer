@@ -32,8 +32,13 @@ typedef	struct	BUTTONCTRL {
 
 typedef	struct	LABELCTRL {
 		judeControl_t	_control;
-		karlFarPtr_t	actvctrl;
+		karlFarPtr_t	actvctrl_p;
 	} judeLabelCtrl_t;
+
+typedef	struct	PAGEBTNCTRL {
+		judeControl_t	_control;
+		karlFarPtr_t	actvpage_p;
+	} judePageBtnCtrl_t;
 
 typedef	struct	EDITCTRL {
 		judeControl_t	_control;
@@ -53,7 +58,7 @@ typedef	struct	RADIOGRPCTRL {
 typedef	struct	RADIOBTNCTRL {
 		judeControl_t	_control;
 
-		karlFarPtr_t	groupctrl;
+		karlFarPtr_t	groupctrl_p;
 	} judeRadioBtnCtrl_t;
 
 
@@ -67,6 +72,9 @@ extern	void	__fastcall__	JudeDefEdtPresent(void);
 extern	void	__fastcall__	JudeDefEdtKeypress(void);
 
 extern	void	__fastcall__	JudeDefLblChange(void);
+
+extern	void	__fastcall__	JudeDefPBtChange(void);
+extern	void	__fastcall__	JudeDefPBtPresent(void);
 
 extern	void	__fastcall__	JudeDefRGpChange(void);
 extern	void	__fastcall__	JudeDefRBtChange(void);

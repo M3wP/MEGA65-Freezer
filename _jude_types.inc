@@ -111,7 +111,7 @@
 		bars_p		.tag	FARPTR
 		barscnt		.byte
 
-		actvpage	.tag	FARPTR
+		actvpage_p	.tag	FARPTR
 		pages_p		.tag	FARPTR
 		pagescnt	.byte
 
@@ -184,8 +184,8 @@
 	.struct PAGE
 		_element	.tag	ELEMENT
 
-		pagenxt		.tag	FARPTR
-		pagebak		.tag	FARPTR
+		pagenxt_p		.tag	FARPTR
+		pagebak_p		.tag	FARPTR
 
 		text_p		.tag	FARPTR
 		textoffx	.byte
@@ -210,7 +210,12 @@
 
 	.struct LABELCTRL
 		_control	.tag 	CONTROL
-		actvctrl	.tag	FARPTR
+		actvctrl_p	.tag	FARPTR
+	.endstruct
+
+	.struct	PAGEBTNCTRL
+		_control	.tag	CONTROL
+		actvpage_p	.tag	FARPTR
 	.endstruct
 
 	.struct	EDITCTRL
@@ -231,7 +236,7 @@
 	.struct	RADIOBTNCTRL
 		_control	.tag	CONTROL
 
-		groupctrl	.tag	FARPTR
+		groupctrl_p	.tag	FARPTR
 	.endstruct
 
 	.endif

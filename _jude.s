@@ -20,6 +20,9 @@
 	.export		_JudeInit
 	.export		__JudeViewInit
 	.export		_JudeMain
+
+	.export		_JudeDeActivatePage
+	.export		_JudeActivatePage
 	.export		_JudeUnDownCtrl
 	.export		_JudeDownCtrl
 	.export		_JudeDeActivateCtrl
@@ -59,6 +62,7 @@
 	.export		jude_cellsize
 	.export		jude_coloury0
 	.export		jude_screeny0
+	.export		jude_actvpg
 	.export		judeDownElem
 
 
@@ -218,21 +222,10 @@ __JudeViewInit:
 
 @cont1:
 		MvDWMem	jude_actvvw, zptrself
-		MvDWObjImm	zreg4, zptrself, VIEW::actvpage
-		MvDWMem	jude_actvpg, zreg4
+		MvDWObjImm	zreg4, zptrself, VIEW::actvpage_p
 		MvDWMem	zptrself, zreg4
 
-;		LDA	#$01
-;		STA	zreg2b3
-		LDA	#STATE_DIRTY
-		JSR	_KarlObjIncludeState
-
-		LDA	#KEY_C64_CDOWN
-		STA	zvalkey
-		LDA	#$00
-		STA	zvalkey + 1
-
-		JSR	__JudeMoveActiveControl
+		JSR	_JudeActivatePage
 
 		LDA	#ERROR_NONE
 		STA	karl_errorno
@@ -302,6 +295,61 @@ _JudeMain:
 		STA	jude_proc
 
 		JMP	@main
+
+
+;-----------------------------------------------------------
+_JudeDeActivatePage:
+;-----------------------------------------------------------
+		LDA	#STATE_ACTIVE
+		JSR	_KarlObjExcludeState
+		
+		LDA	#STATE_DIRTY
+		JSR	_KarlObjExcludeState
+
+		MvDWZ	jude_actvpg
+
+;**FIXME	Update view?
+
+		JSR	__MouseUnPickElement
+		RTS
+
+
+;-----------------------------------------------------------
+_JudeActivatePage:
+;-----------------------------------------------------------
+		LDA	jude_actvpg
+		ORA	jude_actvpg + 1
+		ORA	jude_actvpg + 2
+		ORA	jude_actvpg + 3
+		BEQ	@activate
+
+		LDQMem	zptrself
+		STQMem	zreg4
+
+		LDQMem	jude_actvpg
+		STQMem	zptrself
+
+		JSR	_JudeDeActivatePage
+
+		LDQMem	zreg4
+		STQMem	zptrself
+
+@activate:
+		MvDWMem	jude_actvpg, zptrself
+
+		LDA	#STATE_DIRTY | STATE_ACTIVE
+		JSR	_KarlObjIncludeState
+
+		LDA	#KEY_C64_CDOWN
+		STA	zvalkey
+		LDA	#$00
+		STA	zvalkey + 1
+
+		JSR	__JudeMoveActiveControl
+
+;**FIXME	Update view?
+
+		RTS
 
 
 ;-----------------------------------------------------------
@@ -492,7 +540,13 @@ _JudeEraseBkg:
 		LDZ	zreg8b0
 		LDX	zreg8b2
 		DEX
-		
+
+;***FIXME!!!
+;
+;	This routine is now being called to clear the whole page!
+;	Replace this loopw with a dma job.
+
+
 @loopw:
 		LDA	zreg9b2				;char to screen ram
 		NOP
@@ -503,6 +557,10 @@ _JudeEraseBkg:
 		BNE	@clrsingle
 
 		INZ
+
+		LDA	#00				;hi char to screen ram
+		NOP
+		STA	(zptrscreen), Z
 
 @clrsingle:
 		LDA	zreg9b0				;colour to colour ram
@@ -1873,6 +1931,25 @@ _JudeDefPgeRelease:
 ;-----------------------------------------------------------
 _JudeDefPgePresent:
 ;-----------------------------------------------------------
+		LDZ	#OBJECT::state
+		NOP
+		LDA	(zptrself), Z
+		AND	#STATE_ACTIVE
+		BNE	@present
+
+		RTS
+
+@present:
+		LDZ	#ELEMENT::colour + 1
+		NOP
+		LDA	(zptrself), Z
+		TAX
+		DEZ
+		NOP
+		LDA	(zptrself), Z
+
+		JSR	_JudeEraseBkg
+
 		LDA	#VIEW::barscnt
 		STA	zreg5b0
 
@@ -2444,7 +2521,7 @@ __JudeSendKeys:
 ;	MEGA KEY + Key keys.
 		LDA	#$80
 		TRB	zvalkey
-		BRA	@findaccel
+		JMP	@findaccel
 
 @tstfkeys:
 		LDA	zvalkey
@@ -2455,7 +2532,7 @@ __JudeSendKeys:
 
 @fkey0:
 		CMP	#(KEY_M65_F14 + 1)	
-		BCC	@findaccel
+		LBCC	@findaccel
 
 @isdownctrl:
 		LDA	judeDownElem
@@ -2470,7 +2547,10 @@ __JudeSendKeys:
 		ORA	judeActvElem + 3
 		BNE	@actvctrl
 
-		JMP	__JudeSendKeys		;discard key press
+;***FIXME!!! Shouldn't discard, should send to active page
+
+;		JMP	__JudeSendKeys		;discard key press
+		JMP	@page0
 
 @actvctrl:
 		LDA	zvalkey
@@ -2507,10 +2587,41 @@ __JudeSendKeys:
 		LDA	(zptrself), Z
 		STA	jude_proxyptr + 1
 
+		BEQ	@page0
+
+		LDZ	#$00
+		JSR	__JudeProxy
+
+;***FIXME!!! Check return from keypress and send keys to parent
+;loop if not initial control not down and return not abort instead
+;of this hack
+@page0:
+		LDA	karl_errorno
+		CMP	#ERROR_ABORT
+		BNE	@def
+
+		LDA	jude_actvpg
+		ORA	jude_actvpg + 1
+		ORA	jude_actvpg + 2
+		ORA	jude_actvpg + 3
+		BEQ	@def
+
+		MvDWMem	zptrself, jude_actvpg
+
+		LDZ	#ELEMENT::keypress
+		NOP
+		LDA	(zptrself), Z
+		STA	jude_proxyptr
+		INZ
+		LDA	(zptrself), Z
+		STA	jude_proxyptr + 1
+
 		BEQ	@def
 
 		LDZ	#$00
 		JSR	__JudeProxy
+
+@discard0:
 		JMP	__JudeSendKeys
 
 @def:
@@ -3117,15 +3228,17 @@ __MouseProcessPickControls:
 		LDZ	#OBJECT::state
 		NOP
 		LDA	(zptrself), Z
-		AND	#STATE_VISIBLE
+;		AND	#STATE_VISIBLE
+		BIT	#STATE_VISIBLE
 		BNE	@cont0
 
 		RTS
 
 @cont0:
-		NOP
-		LDA	(zptrself), Z
-		AND	#STATE_ENABLED
+;		NOP
+;		LDA	(zptrself), Z
+;		AND	#STATE_ENABLED
+		BIT	#STATE_ENABLED
 		BNE	@cont1
 
 		RTS
@@ -3161,15 +3274,16 @@ __MouseProcessPickPanels:
 		LDZ	#OBJECT::state
 		NOP
 		LDA	(zptrself), Z
-		AND	#STATE_VISIBLE
+;		AND	#STATE_VISIBLE
+		BIT	#STATE_VISIBLE
 		BNE	@cont0
 
 		RTS
 
 @cont0:
-		NOP
-		LDA	(zptrself), Z
-		AND	#STATE_ENABLED
+;		NOP
+;		LDA	(zptrself), Z
+		BIT	#STATE_ENABLED
 		BNE	@cont1
 
 		RTS
@@ -3415,8 +3529,33 @@ __MouseProcessMouse:
 		ORA	judeMsePElem + 1
 		ORA	judeMsePElem + 2
 		ORA	judeMsePElem + 3
+		BNE	@dopick
+
+		MvDWMem	zreg4, jude_actvvw
+
+		LDA	#VIEW::barscnt
+		STA	zreg5b0
+
+		LDA	#VIEW::bars_p
+		STA	zreg5b2
+
+		LDA	#$01
+		STA	zreg5b3
+
+		LDA	#<__MouseProcessPickPanels
+		STA	zreg6wl
+		LDA	#>__MouseProcessPickPanels
+		STA	zreg6wl + 1
+
+		JSR	__KarlProcObjLst
+
+		LDA	judeMsePElem
+		ORA	judeMsePElem + 1
+		ORA	judeMsePElem + 2
+		ORA	judeMsePElem + 3
 		BEQ	@unpick
 
+@dopick:
 		LDA	judePickElem
 		CMP	judeMsePElem
 		BNE	@newpick
@@ -3737,22 +3876,28 @@ __MouseButtonCheck:
 ;		STA	MouseUsed
 ;		PLA
 		
-		AND	#MOUSE_LBTN		;No - Is left button down?
+;		AND	#MOUSE_LBTN		;No - Is left button down?
+		BIT	#MOUSE_LBTN		;No - Is left button down?
 		BNE	@testRight		;Yes - test right
 		
 		LDA	mouseButtonsOld		;No, but was it last time?
-		AND	#MOUSE_LBTN
+;		AND	#MOUSE_LBTN
+		BIT	#MOUSE_LBTN
 		BEQ	@testRight		;No - test right
 		
 		LDA	#$01			;Yes - flag have left click
 		STA	mouseBtnLClick
 		
 @testRight:
-		AND	#MOUSE_RBTN		;Is right button down?
+;dengland Before adding BIT, this was probably bugged.
+
+;		AND	#MOUSE_RBTN		;Is right button down?
+		BIT	#MOUSE_RBTN		;Is right button down?
 		BNE	@done			;Yes - don't do anything here
 		
 		LDA	mouseButtonsOld		;No, but was it last time?
-		AND	#MOUSE_RBTN
+;		AND	#MOUSE_RBTN
+		BIT	#MOUSE_RBTN
 		BEQ	@done			;No - don't do anything here
 		
 		LDA	#$01			;Yes - flag have right click

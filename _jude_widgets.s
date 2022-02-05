@@ -14,11 +14,15 @@
 
 	.export		_JudeDefLblChange
 
+	.export		_JudeDefPBtChange
+	.export		_JudeDefPBtPresent
+
 	.export		_JudeDefRGpChange
 	.export		_JudeDefRBtChange
 
 	.export		_JudeRGroupReset
 
+	.import		_JudeActivatePage
 
 	.import		_JudeUnDownCtrl
 	.import		_JudeDownCtrl
@@ -33,6 +37,7 @@
 	.import		_JudeEnqueueKey
 	.import		_JudeDequeueKey
 
+	.import		jude_actvpg
 	.import		jude_cellsize
 	.import		jude_coloury0
 	.import		jude_screeny0
@@ -195,13 +200,20 @@ _JudeDefCtlPresent:
 		JMP	@draw
 		
 @checkpick:
-		LDA	zregAb0				;Check if picked
-		AND	#STATE_PICKED
-		BEQ	@checkactv
+;		LDA	zregAb0				;Check if picked
+;		AND	#STATE_PICKED
+;		BEQ	@checkactv
+;		LDA	zregAb0				;Check if its not active
+;		AND	#STATE_ACTIVE
+;		BNE	@normal
 
-		LDA	zregAb0				;Check if its not active
-		AND	#STATE_ACTIVE
+		LDA	zregAb0				;Check if picked
+		BIT	#STATE_PICKED
+		BEQ	@checkactv
+;		LDA	zregAb0				;Check if its not active
+		BIT	#STATE_ACTIVE
 		BNE	@normal
+
 
 @picked:
 		LDZ	#ELEMENT::colour + 1;Check its not already FOCUS
@@ -375,7 +387,7 @@ _JudeDefCtlPresent:
 ;-----------------------------------------------------------
 _JudeDefCtlKeypress:
 ;-----------------------------------------------------------
-		LDA	#$00
+		LDA	#ERROR_ABORT
 		STA	karl_errorno
 
 		RTS
@@ -396,7 +408,7 @@ _JudeDefLblChange:
 		AND	#STATE_DOWN
 		BEQ	@exit
 
-		MvDWObjImm	zreg4, zptrself, LABELCTRL::actvctrl
+		MvDWObjImm	zreg4, zptrself, LABELCTRL::actvctrl_p
 		
 		LDA	zreg4b0
 		ORA	zreg4b1
@@ -410,6 +422,72 @@ _JudeDefLblChange:
 @exit:
 		RTS
 		
+
+;-----------------------------------------------------------
+_JudeDefPBtChange:
+;-----------------------------------------------------------
+		LDZ	#OBJECT::state
+		NOP
+		LDA	(zptrself), Z
+
+		PHA
+
+		JSR	_JudeDefCtlChange
+
+		PLA
+		AND	#STATE_DOWN
+		BEQ	@exit
+
+		MvDWObjImm	zreg4, zptrself, PAGEBTNCTRL::actvpage_p
+		
+		LDA	zreg4b0
+		ORA	zreg4b1
+		ORA	zreg4b2
+		ORA	zreg4b3
+		BEQ	@exit
+
+		MvDWMem	zptrself, zreg4
+		JSR	_JudeActivatePage
+
+@exit:
+		RTS
+
+
+;-----------------------------------------------------------
+_JudeDefPBtPresent:
+;-----------------------------------------------------------
+		MvDWObjImm	zreg4, zptrself, PAGEBTNCTRL::actvpage_p
+		
+		LDQMem	zreg4
+		CPQMem	jude_actvpg
+
+		BNE	@unset
+
+		LDZ	#ELEMENT::colour
+		LDA	#<CLR_FOCUS
+		NOP
+		STA	(zptrself), Z
+		INZ
+		LDA	#>CLR_FOCUS
+		NOP
+		STA	(zptrself), Z
+
+		BRA	@default
+
+@unset:
+		LDZ	#ELEMENT::colour
+		LDA	#<CLR_FACE
+		NOP
+		STA	(zptrself), Z
+		INZ
+		LDA	#>CLR_FACE
+		NOP
+		STA	(zptrself), Z
+
+@default:
+		JMP	_JudeDefCtlPresent
+
+
 
 ;-----------------------------------------------------------
 _JudeDefEdtPresent:
@@ -645,7 +723,7 @@ _JudeRGroupReset:
 		STQMem	zregE
 
 @set:
-		LDZ	#LABELCTRL::actvctrl
+		LDZ	#LABELCTRL::actvctrl_p
 
 		LDA	zregEb0
 		NOP
@@ -791,7 +869,7 @@ __JudeUpdateRadioGroup:
 		ORA	zregBb3
 		BEQ	@exit
 
-		LDZ	#LABELCTRL::actvctrl
+		LDZ	#LABELCTRL::actvctrl_p
 
 		LDA	zregEb0
 		NOP
@@ -839,7 +917,7 @@ _JudeDefRBtChange:
 		AND	#STATE_DOWN
 		BEQ	@exit
 
-		MvDWObjImm	zregA, zptrself, RADIOBTNCTRL::groupctrl
+		MvDWObjImm	zregA, zptrself, RADIOBTNCTRL::groupctrl_p
 		JSR	__JudeUpdateRadioGroup
 
 @exit:

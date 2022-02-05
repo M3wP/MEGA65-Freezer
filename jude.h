@@ -189,6 +189,10 @@ typedef	struct	CONTROL {
 
 extern void	__fastcall__	JudeInit(void);
 extern void	__fastcall__	JudeMain(void);
+
+
+extern void	__fastcall__	JudeDeActivatePage(void);
+extern void	__fastcall__	JudeActivatePage(void);
 extern void	__fastcall__	JudeUnDownCtrl(void);
 extern void	__fastcall__	JudeDownCtrl(void);
 extern void	__fastcall__	JudeDeActivateCtrl(void);
@@ -231,6 +235,9 @@ extern void	__fastcall__	_JudeDrawTextDirect(void);
 
 extern void	JudeViewInit(karlFarPtr_t *view);
 extern void JudeDrawText(word colour, byte indent, byte mwidth, byte docont);
+extern void JudeDrawTextDirect(word colour, byte indent, byte mwidth, byte docont,
+			byte x, byte y, byte offs, void *text);
+
 extern byte	JudeLogClrIsReverse(word colour);
 
 #endif

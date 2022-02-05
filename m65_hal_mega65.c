@@ -49,7 +49,7 @@ void sdcard_reset(void)
 
   // Now wait for SD card reset to complete
   while (PEEK(sd_ctl) & 3) {
-    POKE(0xd020, (PEEK(0xd020) + 1) & 15);
+//  POKE(0xd020, (PEEK(0xd020) + 1) & 15);
   }
 
   if (sdhc_card) {
@@ -164,7 +164,7 @@ void sdcard_readsector(const uint32_t sector_number)
       return;
     }
 
-    POKE(0xd020, (PEEK(0xd020) + 1) & 0xf);
+//  POKE(0xd020, (PEEK(0xd020) + 1) & 0xf);
 
     // Reset SD card
     sdcard_open();
@@ -201,7 +201,7 @@ void sdcard_writesector(const uint32_t sector_number, uint8_t is_multi)
 
   counter = 0;
   while (PEEK(sd_ctl) & 3) {
-    POKE(0xD020, PEEK(0xD020) + 1);
+//    POKE(0xD020, PEEK(0xD020) + 1);
     counter++;
     if (!counter) {
       // SD card not becoming ready: try reset
@@ -276,7 +276,7 @@ void sdcard_writesector(const uint32_t sector_number, uint8_t is_multi)
     }
 
     write_count++;
-    POKE(0xD020, write_count & 0x0f);
+//  POKE(0xD020, write_count & 0x0f);
 
     // Note result
     result = PEEK(sd_ctl);
@@ -284,7 +284,7 @@ void sdcard_writesector(const uint32_t sector_number, uint8_t is_multi)
     if (!(PEEK(sd_ctl) & 0x67)) {
       write_count++;
 
-      POKE(0xD020, write_count & 0x0f);
+//    POKE(0xD020, write_count & 0x0f);
 
       // There is a bug in the SD controller: You have to read between writes, or it
       // gets really upset.
@@ -325,7 +325,7 @@ void sdcard_writesector(const uint32_t sector_number, uint8_t is_multi)
       }
     }
 
-    POKE(0xd020, (PEEK(0xd020) + 1) & 0xf);
+//    POKE(0xd020, (PEEK(0xd020) + 1) & 0xf);
   }
 
   //  write_line("Write error @ $$$$$$$$$",2);

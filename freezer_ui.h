@@ -7,6 +7,10 @@
 #include	"ascii.h"
 
 extern const char str_freeze_page0[];
+extern const char str_freeze_page1[];
+
+extern const char str_freeze_bar0[];
+
 extern const char str_freeze_ctrl0[];
 extern const char str_freeze_ctrl1[];
 extern const char str_freeze_ctrl2[];
@@ -33,9 +37,9 @@ extern unsigned char str_freeze_ctrl16b[];
 
 extern const char str_freeze_ctrl17[];
 extern const char str_freeze_ctrl18[];
-extern const char str_freeze_ctrl19[];
+extern char str_freeze_ctrl19[];
 extern const char str_freeze_ctrl1A[];
-extern const char str_freeze_ctrl1B[];
+extern char str_freeze_ctrl1B[];
 
 extern const char str_freeze_ctrl1Ca[];
 extern const char str_freeze_ctrl1Cb[];
@@ -45,22 +49,26 @@ extern const char str_freeze_ctrl1E[];
 extern const char str_freeze_ctrl1F[];
 extern const char str_freeze_ctrl20[];
 extern const char str_freeze_ctrl21[];
-extern const char str_freeze_ctrl22[];
+extern char str_freeze_ctrl22[];
 extern const char str_freeze_ctrl23[];
-extern const char str_freeze_ctrl24[];
+extern char str_freeze_ctrl24[];
 extern const char str_freeze_ctrl25[];
 extern const char str_freeze_ctrl26[];
-extern const char str_freeze_ctrl27[];
+extern char str_freeze_ctrl27[];
 extern const char str_freeze_ctrl28[];
-extern const char str_freeze_ctrl29[];
-
+extern char str_freeze_ctrl29[];
+extern const char str_freeze_ctrl2A[];
+extern const char str_freeze_ctrl2B[];
+extern const char str_freeze_ctrl2C[];
+extern const char str_freeze_ctrl2D[];
+extern const char str_freeze_ctrl2E[];
+extern const char str_freeze_ctrl2F[];
+extern const char str_freeze_ctrl30[];
 
 extern karlModule_t mod_freeze_app;
 extern judeUInterface_t uni_freeze_ui;
 
 extern karlFarPtr_t uns_freeze_app[];
-
-extern judePage_t	pge_freeze_page0;
 
 extern judeView_t vew_freeze_view;
 
@@ -69,8 +77,6 @@ extern karlFarPtr_t vws_freeze_ui[];
 extern judeLayer_t	lyr_freeze_layer;
 
 extern karlFarPtr_t lys_freeze_view[];
-
-extern judePage_t	pge_freeze_page0;
 
 extern judeBar_t	bar_freeze_bar0;
 
@@ -81,6 +87,12 @@ extern judeBar_t bar_freeze_bar1;
 extern karlFarPtr_t cts_freeze_bar1[];
 
 extern karlFarPtr_t brs_freeze_view[];
+
+extern judePage_t	pge_freeze_page0;
+
+extern judePageBtnCtrl_t	pbt_freeze_control2B;
+extern judePageBtnCtrl_t	pbt_freeze_control2C;
+
 
 extern karlFarPtr_t pgs_freeze_view[];
 
@@ -156,8 +168,21 @@ extern judeControl_t ctl_freeze_control29;
 
 extern karlFarPtr_t cts_freeze_panel3[];
 
-
 extern karlFarPtr_t cts_freeze_panel4[];
+
+
+extern judePage_t	pge_freeze_page1;
+extern karlFarPtr_t pns_freeze_page1[];
+
+extern judePanel_t pnl_freeze_panel5;
+
+extern karlFarPtr_t cts_freeze_panel5[];
+
+extern judeControl_t txt_freeze_control2D;
+
+extern judeControl_t btn_freeze_control2E;
+extern judeControl_t btn_freeze_control2F;
+extern judeControl_t btn_freeze_control30;
 
 
 #endif

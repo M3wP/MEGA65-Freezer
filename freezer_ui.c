@@ -1,3 +1,17 @@
+//******************************************************************************
+//
+//==============================================================================
+//
+//
+//
+//
+//
+//
+//
+//
+//******************************************************************************
+
+
 #include	"karljr.h"
 #include	"jude.h"
 #include	"jude_widgets.h"
@@ -5,7 +19,16 @@
 #include	"freezer_ui_m3wp.h"
 
 
+
+//==============================================================================
+//==============================================================================
+
+
 const char str_freeze_page0[] = "STATE";
+const char str_freeze_page1[] = "TOOLS";
+
+const char str_freeze_bar0[] = "M E G A 6 5   F R E E Z E R   U T I L I T Y ";
+
 const char str_freeze_ctrl0[] = "C P U";
 const char str_freeze_ctrl1[] = "MODE:";
 const char str_freeze_ctrl2[] = "AUTO";
@@ -32,9 +55,9 @@ unsigned char str_freeze_ctrl16b[] = "    S L O T #   x x x x x";
 
 const char str_freeze_ctrl17[] = " +";
 const char str_freeze_ctrl18[] = "TYPE    :";
-const char str_freeze_ctrl19[] = "OPERATING SYSTEM";
+char str_freeze_ctrl19[] = "OPERATING SYSTEM";
 const char str_freeze_ctrl1A[] = "ID      :";
-const char str_freeze_ctrl1B[] = "255";
+char str_freeze_ctrl1B[] = "255      ";
 
 const char str_freeze_ctrl1Ca[] = "F3 RESUME";
 const char str_freeze_ctrl1Cb[] = "F3 LOAD";
@@ -44,15 +67,28 @@ const char str_freeze_ctrl1E[] = "F7 SAVE TO SLOT";
 const char str_freeze_ctrl1F[] = "D R I V E S";
 const char str_freeze_ctrl20[] = "0 TYPE  :";
 const char str_freeze_ctrl21[] = "IMAGE:D81";
-const char str_freeze_ctrl22[] = "MUZAK1.D81";
+char str_freeze_ctrl22[] = "MUZAK1.D81                      ";
 const char str_freeze_ctrl23[] = "8 UNIT #:";
-const char str_freeze_ctrl24[] = "#8";
+char str_freeze_ctrl24[] = "8        ";
 const char str_freeze_ctrl25[] = "1 TYPE  :";
 const char str_freeze_ctrl26[] = "3.5\"";
-const char str_freeze_ctrl27[] = "";
+char str_freeze_ctrl27[] = "                                ";
 const char str_freeze_ctrl28[] = "9 UNIT #:";
-const char str_freeze_ctrl29[] = "#9";
+char str_freeze_ctrl29[] = "9        ";
 const char str_freeze_ctrl2A[] = "2 MHZ";
+
+const char	str_freeze_ctrl2D[] = "T O O L S";
+const char	str_freeze_ctrl2E[] = "M - MONITOR";
+const char	str_freeze_ctrl2F[] = "A - AUDIO MIXER";
+const char	str_freeze_ctrl30[] = "S - SPRITE EDITOR";
+
+
+extern const char str_freeze_ctrl2B[] = "F1 STATE|";
+extern const char str_freeze_ctrl2C[] = "F2 TOOLS";
+
+
+//==============================================================================
+//==============================================================================
 
 
 karlModule_t mod_freeze_app = {
@@ -122,7 +158,7 @@ judeView_t vew_freeze_view = {
 		0x02,//						;barscnt
 		NEARTOFARPTRREC(pge_freeze_page0),//			;actvpage_p
 		NEARTOFARPTRREC(pgs_freeze_view),//			;pages_p
-		0x01,//						;pagescnt
+		0x02,//						;pagescnt
 		0x0000};//					;linelen
 
 karlFarPtr_t vws_freeze_ui[] = {
@@ -178,8 +214,6 @@ judePage_t	pge_freeze_page0 = {
 		NEARTOFARPTRREC(pns_freeze_page0),//			;panels_p
 		0x05};//						;panelscnt
 
-char	str_freeze_page[] = "TEST PAGE";
-
 
 judeBar_t	bar_freeze_bar0 = {
 //Object
@@ -194,7 +228,7 @@ judeBar_t	bar_freeze_bar0 = {
 		0x0000,//					;options
 		0x0000,//					;tag
 //Element
-		NEARTOEVENTPTR(JudeDefPnlPresent),//		;present
+		NEARTOEVENTPTR(FreezeMenuBarPrs),//		;present
 		EVENTPTRNULLREC,//					;keypress
 		NEARTOFARPTRREC(pge_freeze_page0),//			;owner
 		CLR_PAPER,//				;colour
@@ -212,6 +246,7 @@ judeBar_t	bar_freeze_bar0 = {
 karlFarPtr_t cts_freeze_bar0[] = {
 		FARPTRNULLREC};
 
+
 judeBar_t bar_freeze_bar1 = {
 //Object
 		sizeof(judeBar_t),								//size
@@ -228,7 +263,7 @@ judeBar_t bar_freeze_bar1 = {
 		NEARTOEVENTPTR(JudeDefPnlPresent),//		;present
 		EVENTPTRNULLREC,//					;keypress
 		NEARTOFARPTRREC(pge_freeze_page0),//			;owner
-		CLR_FACE,//				;colour
+		CLR_SHADOW,//				;colour
 		0x00,//						;posx
 		0x01,//						;posy
 		0x50,//						;width
@@ -236,19 +271,78 @@ judeBar_t bar_freeze_bar1 = {
 //Panel
 		NEARTOFARPTRREC(lyr_freeze_layer),//			;layer_p
 		NEARTOFARPTRREC(cts_freeze_bar1),//			;controls_p
-		0x00,//						;controlscnt
+		0x02,//						;controlscnt
 //Bar
 		0x00};//						;position
 
 karlFarPtr_t cts_freeze_bar1[] = {
-		FARPTRNULLREC};
+		NEARTOFARPTRREC(pbt_freeze_control2B),
+		NEARTOFARPTRREC(pbt_freeze_control2C)};
+
+judePageBtnCtrl_t	pbt_freeze_control2B = {
+//Object
+		sizeof(judePageBtnCtrl_t),								//size
+		NEARTOFARPTRREC(bar_freeze_bar1),							//parent
+		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
+		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
+		NEARTOEVENTPTR(JudeDefPBtChange),//			;change
+		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
+		STATE_DEFCTRL,//			;state
+		0x0000,//					;oldstate
+		OPT_TEXTACCEL2X | OPT_NODOWNACTV,//					;options
+		0x0000,//					;tag
+//Element
+		NEARTOEVENTPTR(JudeDefPBtPresent),//		;present
+		EVENTPTRNULLREC,//					;keypress
+		NEARTOFARPTRREC(bar_freeze_bar1),//			;owner
+		CLR_FACE,//				;colour
+		0x00,//						;posx
+		0x01,//						;posy
+		0x09,//						;width
+		0x01,//						;height
+//Control
+		NEARTOFARPTRREC(str_freeze_ctrl2B),//			; text_p
+		0x00,//						;textoffx
+		0x00,//						;textaccel
+		0xF1,//						;accelchar
+		NEARTOFARPTRREC(pge_freeze_page0)};//						
+
+judePageBtnCtrl_t	pbt_freeze_control2C = {
+//Object
+		sizeof(judePageBtnCtrl_t),								//size
+		NEARTOFARPTRREC(bar_freeze_bar1),							//parent
+		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
+		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
+		NEARTOEVENTPTR(JudeDefPBtChange),//			;change
+		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
+		STATE_DEFCTRL,//			;state
+		0x0000,//					;oldstate
+		OPT_TEXTACCEL2X | OPT_NODOWNACTV,//					;options
+		0x0000,//					;tag
+//Element
+		NEARTOEVENTPTR(JudeDefPBtPresent),//		;present
+		EVENTPTRNULLREC,//					;keypress
+		NEARTOFARPTRREC(bar_freeze_bar1),//			;owner
+		CLR_FACE,//				;colour
+		0x09,//						;posx
+		0x01,//						;posy
+		0x09,//						;width
+		0x01,//						;height
+//Control
+		NEARTOFARPTRREC(str_freeze_ctrl2C),//			; text_p
+		0x01,//						;textoffx
+		0x01,//						;textaccel
+		0xF2,//						;accelchar
+		NEARTOFARPTRREC(pge_freeze_page1)};//						
+
 
 karlFarPtr_t brs_freeze_view[] = {
 		NEARTOFARPTRREC(bar_freeze_bar0),
 		NEARTOFARPTRREC(bar_freeze_bar1)};
 
 karlFarPtr_t pgs_freeze_view[] = {
-		NEARTOFARPTRREC(pge_freeze_page0)};
+		NEARTOFARPTRREC(pge_freeze_page0),
+		NEARTOFARPTRREC(pge_freeze_page1)};
 
 
 judePanel_t	pnl_freeze_panel0 = {
@@ -365,6 +459,7 @@ karlFarPtr_t pns_freeze_page0[] = {
 		NEARTOFARPTRREC(pnl_freeze_panel1),
 		NEARTOFARPTRREC(pnl_freeze_panel4)};
 
+
 judeControl_t txt_freeze_control0 = {
 //Object
 		sizeof(judeControl_t),								//size
@@ -425,7 +520,7 @@ judeRadioGrpCtrl_t rgp_freeze_control2 = {
 		NEARTOFARPTRREC(pnl_freeze_panel0),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefRGpChange),//			;change
+		NEARTOEVENTPTR(FreezeModeAutoChg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -462,7 +557,7 @@ judeRadioBtnCtrl_t rbt_freeze_control3 = {
 		NEARTOFARPTRREC(pnl_freeze_panel0),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefRBtChange),//			;change
+		NEARTOEVENTPTR(FreezeMode4502Chg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -768,7 +863,7 @@ judeRadioGrpCtrl_t rgp_freeze_controlC = {
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefRGpChange),//			;change
+		NEARTOEVENTPTR(FreezeVideoPALChg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -804,7 +899,7 @@ judeRadioBtnCtrl_t rbt_freeze_controlD = {
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefRBtChange),//			;change
+		NEARTOEVENTPTR(FreezeVideoNTSCChg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -861,7 +956,7 @@ judeRadioGrpCtrl_t rgp_freeze_controlF = {
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefRGpChange),//			;change
+		NEARTOEVENTPTR(FreezeCartEnblChg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -897,7 +992,7 @@ judeRadioBtnCtrl_t rbt_freeze_control10 = {
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefRBtChange),//			;change
+		NEARTOEVENTPTR(FreezeCartDsblChg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -953,7 +1048,7 @@ judeRadioGrpCtrl_t rgp_freeze_control12 = {
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefRGpChange),//			;change
+		NEARTOEVENTPTR(FreezeJoySEnblChg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -989,7 +1084,7 @@ judeRadioBtnCtrl_t rbt_freeze_control13 = {
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefRBtChange),//			;change
+		NEARTOEVENTPTR(FreezeJoySDsblChg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1431,7 +1526,7 @@ judeControl_t txt_freeze_control22 = {
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
-		OPT_NONAVIGATE,//					;options
+		OPT_NONAVIGATE | OPT_TEXTCONTMRK,//					;options
 		0x0000,//					;tag
 //Element
 		NEARTOEVENTPTR(JudeDefCtlPresent),//		;present
@@ -1566,7 +1661,7 @@ judeControl_t txt_freeze_control27 = {
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
-		OPT_NONAVIGATE,//					;options
+		OPT_NONAVIGATE | OPT_TEXTCONTMRK,//					;options
 		0x0000,//					;tag
 //Element
 		NEARTOEVENTPTR(JudeDefCtlPresent),//		;present
@@ -1666,7 +1761,7 @@ judePanel_t	pnl_freeze_panel4 = {
 		NEARTOEVENTPTR(FreezeThumbPresent),//		;present
 		EVENTPTRNULLREC,//					;keypress
 		NEARTOFARPTRREC(pge_freeze_page0),//			;owner
-		CLR_INSET,//				;colour
+		CLR_EMPTY,//				;colour
 		0x00,//						;posx
 		0x02,//						;posy
 		0x29,//						;width
@@ -1678,3 +1773,179 @@ judePanel_t	pnl_freeze_panel4 = {
 
 karlFarPtr_t cts_freeze_panel4[] = {
 	EVENTPTRNULLREC};
+
+
+
+judePage_t	pge_freeze_page1 = {
+//Object
+		sizeof(judePage_t),								//size
+		NEARTOFARPTRREC(lyr_freeze_layer),							//parent
+		NEARTOEVENTPTR(JudeDefPgePrepare),//		;prepare
+		NEARTOEVENTPTR(JudeDefPgeInit),//			;initialise
+		NEARTOEVENTPTR(JudeDefPgeChange),//			;change
+		NEARTOEVENTPTR(JudeDefPgeRelease),//		;release
+		STATE_DEFCTRL,//			;state
+		0x0000,//					;oldstate
+		0x0000,//					;options
+		0x0000,//					;tag
+//Element
+		NEARTOEVENTPTR(JudeDefPgePresent),//		;present
+		EVENTPTRNULLREC,//					;keypress
+		FARPTRNULLREC,//				;owner
+		CLR_EMPTY,//				;colour
+		0x00,//						;posx
+		0x02,//						;posy
+		0x50,//						;width
+		0x17,//						;height
+//Page
+		FARPTRNULLREC,//				;pagenxt
+		FARPTRNULLREC,//				;pagebak
+		NEARTOFARPTRREC(str_freeze_page1),//			;text_p
+		0x00,//						;textoffx
+		NEARTOFARPTRREC(pns_freeze_page1),//			;panels_p
+		0x01};//						;panelscnt
+
+karlFarPtr_t pns_freeze_page1[] = {
+		NEARTOFARPTRREC(pnl_freeze_panel5)};
+
+
+judePanel_t	pnl_freeze_panel5 = {
+//Object
+		sizeof(judePanel_t),								//size
+		NEARTOFARPTRREC(pge_freeze_page0),							//parent
+		NEARTOEVENTPTR(JudeDefPnlPrepare),//		;prepare
+		NEARTOEVENTPTR(JudeDefPnlInit),//			;initialise
+		NEARTOEVENTPTR(JudeDefPnlChange),//			;change
+		NEARTOEVENTPTR(JudeDefPnlRelease),//		;release
+		STATE_DEFCTRL,//			;state
+		0x0000,//					;oldstate
+		0x0000,//					;options
+		0x0000,//					;tag
+//Element
+		NEARTOEVENTPTR(JudeDefPnlPresent),//		;present
+		EVENTPTRNULLREC,//					;keypress
+		NEARTOFARPTRREC(pge_freeze_page0),//			;owner
+		CLR_INSET,//				;colour
+		0x00,//						;posx
+		0x03,//						;posy
+		0x29,//						;width
+		0x14,//						;height
+//Panel
+		NEARTOFARPTRREC(lyr_freeze_layer),//			;layer_p
+		NEARTOFARPTRREC(cts_freeze_panel5),//			;controls_p
+		0x04};//						;controlscnt
+
+karlFarPtr_t cts_freeze_panel5[] = {
+		NEARTOFARPTRREC(txt_freeze_control2D),
+		NEARTOFARPTRREC(btn_freeze_control2E),
+		NEARTOFARPTRREC(btn_freeze_control2F),
+		NEARTOFARPTRREC(btn_freeze_control30)};
+
+
+judeControl_t txt_freeze_control2D = {
+//Object
+		sizeof(judeControl_t),								//size
+		NEARTOFARPTRREC(pnl_freeze_panel5),							//parent
+		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
+		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
+		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
+		STATE_DEFCTRL,//			;state
+		0x0000,//					;oldstate
+		OPT_NONAVIGATE,//					;options
+		0x0000,//					;tag
+//Element
+		NEARTOEVENTPTR(JudeDefCtlPresent),//		;present
+		EVENTPTRNULLREC,//					;keypress
+		NEARTOFARPTRREC(pnl_freeze_panel5),//			;owner
+		CLR_TEXT,//				;colour
+		0x00,//						;posx
+		0x03,//						;posy
+		0x29,//						;width
+		0x01,//						;height
+//Control
+		NEARTOFARPTRREC(str_freeze_ctrl2D),//			; text_p
+		0x00,//						;textoffx
+		0xFF,//						;textaccel
+		0x00};//						;accelchar
+
+judeControl_t btn_freeze_control2E = {
+//Object
+		sizeof(judeControl_t),								//size
+		NEARTOFARPTRREC(pnl_freeze_panel5),							//parent
+		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
+		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
+		NEARTOEVENTPTR(FreezeToolMonChg),//			;change
+		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
+		STATE_DEFCTRL,//			;state
+		0x0000,//					;oldstate
+		0x0000,//					;options
+		0x0000,//					;tag
+//Element
+		NEARTOEVENTPTR(JudeDefCtlPresent),//		;present
+		EVENTPTRNULLREC,//					;keypress
+		NEARTOFARPTRREC(pnl_freeze_panel5),//			;owner
+		CLR_FACE,//				;colour
+		0x00,//						;posx
+		0x05,//						;posy
+		0x29,//						;width
+		0x01,//						;height
+//Control
+		NEARTOFARPTRREC(str_freeze_ctrl2E),//			; text_p
+		0x00,//						;textoffx
+		0x00,//						;textaccel
+		'M'};//						;accelchar
+
+judeControl_t btn_freeze_control2F = {
+//Object
+		sizeof(judeControl_t),								//size
+		NEARTOFARPTRREC(pnl_freeze_panel5),							//parent
+		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
+		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
+		NEARTOEVENTPTR(FreezeToolAudChg),//			;change
+		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
+		STATE_DEFCTRL,//			;state
+		0x0000,//					;oldstate
+		0x0000,//					;options
+		0x0000,//					;tag
+//Element
+		NEARTOEVENTPTR(JudeDefCtlPresent),//		;present
+		EVENTPTRNULLREC,//					;keypress
+		NEARTOFARPTRREC(pnl_freeze_panel5),//			;owner
+		CLR_FACE,//				;colour
+		0x00,//						;posx
+		0x07,//						;posy
+		0x29,//						;width
+		0x01,//						;height
+//Control
+		NEARTOFARPTRREC(str_freeze_ctrl2F),//			; text_p
+		0x00,//						;textoffx
+		0x00,//						;textaccel
+		'A'};//						;accelchar
+
+judeControl_t btn_freeze_control30 = {
+//Object
+		sizeof(judeControl_t),								//size
+		NEARTOFARPTRREC(pnl_freeze_panel5),							//parent
+		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
+		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
+		NEARTOEVENTPTR(FreezeToolSprChg),//			;change
+		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
+		STATE_DEFCTRL,//			;state
+		0x0000,//					;oldstate
+		0x0000,//					;options
+		0x0000,//					;tag
+//Element
+		NEARTOEVENTPTR(JudeDefCtlPresent),//		;present
+		EVENTPTRNULLREC,//					;keypress
+		NEARTOFARPTRREC(pnl_freeze_panel5),//			;owner
+		CLR_FACE,//				;colour
+		0x00,//						;posx
+		0x09,//						;posy
+		0x29,//						;width
+		0x01,//						;height
+//Control
+		NEARTOFARPTRREC(str_freeze_ctrl30),//			; text_p
+		0x00,//						;textoffx
+		0x00,//						;textaccel
+		'S'};//						;accelchar
