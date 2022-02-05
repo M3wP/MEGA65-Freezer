@@ -12,17 +12,19 @@ ASSFILES=	freezer.s\
 		freezer_ui_m3wp.s\
 		freezer_ui_gen.s\
 		frozen_memory.s\
-		m65_fat32.s\
-		m65_dos.s\
-		m65_hal_mega65.s\
-		m65_mem.s\
-		_m65lib.s\
 		jude.s\
 		karljr.s\
 		_jude_widgets.s\
 		_jude.s\
 		_karljr.s\
 		_karljr_zp.s
+
+#		m65_fat32.s\
+		m65_dos.s\
+		m65_hal_mega65.s\
+		m65_mem.s\
+		_m65lib.s
+
 
 DATAFILES=	ascii8x8.bin
 
@@ -32,19 +34,43 @@ HEADERS=	Makefile \
 		freezer_ui_m3wp.h\
 		freezer_ui_gen.h\
 		frozen_memory.h\
-		m65_fat32.h\
-		m65_dos.h\
-		m65_hal.h \
-		m65_mem.h \
 		jude_widgets.h\
 		jude.h \
 		karljr.h \
 		ascii.h
 
+#		m65_fat32.h\
+		m65_dos.h\
+		m65_hal.h \
+		m65_mem.h \
+
+
+
+LIBFILES=	m65_fat32.o\
+		m65_dos.o\
+		m65_hal_mega65.o\
+		m65_mem.o\
+		_m65lib.o
+
+LIBHEADERS=	m65_fat32.h\
+		m65_dos.h\
+		m65_hal.h \
+		m65_mem.h\
+		ascii.h
+
+
 %.s:	%.c $(HEADERS)
 	$(warning ======== Making: $@)
 	$(CC65) $(COPTS) -o $@ $<
 
-FREEZER.M65:	$(ASSFILES) $(HEADERS)
+FREEZER.M65:	$(ASSFILES) $(HEADERS) libmega65.a
 	$(warning ======== Making: $@)
-	$(CL65) $(COPTS) $(LOPTS) --config jkjr.cfg -vm --add-source -l freezer.list -m freezer.map -o FREEZER.M65 $(ASSFILES)
+	$(CL65) $(COPTS) $(LOPTS) --config jkjr.cfg -vm --add-source -l freezer.list -m freezer.map -o FREEZER.M65 $(ASSFILES) libmega65.a
+
+
+%.o:	%.s
+	$(warning ======== Making: $@)
+	ca65 -o $@ $<
+
+libmega65.a:	$(LIBFILES) $(LIBHEADERS)
+	ar65 r $@ $(LIBFILES)
