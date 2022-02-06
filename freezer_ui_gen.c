@@ -1,10 +1,15 @@
+#include  <string.h>
+
 #include "m65_mem.h"
 #include "m65_hal.h"
 #include "frozen_memory.h"
 #include "ascii.h"
 
 #include "karljr.h"
+#include "jude.h"
 
+
+short file_count = 0;
 
 unsigned char thumbchars[6][20];
 
@@ -30,6 +35,117 @@ unsigned char c64_palette[64]={
 // clang-format on
 
 unsigned char colour_table[256];
+
+
+void save_to_slot(void) {
+    uint32_t i;
+    uint32_t j;
+    uint32_t dest_freeze_slot_start_sector;
+    find_freeze_slot_start_sector(0);
+    freeze_slot_start_sector = *(uint32_t*)0xD681U;
+    find_freeze_slot_start_sector(slot_number);
+    dest_freeze_slot_start_sector = *(uint32_t*)0xD681U;
+
+    JudeSetPointer(MPTR_WAIT);
+
+//  512KB = 1024 sectors
+//  Process in 64KB blocks, so that we can do multi-sector writes
+//  and generally be about 10x faster than otherwise.
+    for (i = 0; i < 1024; i += 128) {
+//      POKE(0xD020U, 0x0e);
+        for (j = 0; j < 128; j++) {
+            sdcard_readsector(freeze_slot_start_sector + i + j);
+            lcopy((unsigned long)sector_buffer, 0x40000U + (j << 9), 512);
+        }
+//      POKE(0xD020U, 0x00);
+        for (j = 0; j < 128; j++) {
+            lcopy(0x40000U + (j << 9), (unsigned long)sector_buffer, 512);
+#ifdef USE_MULTIBLOCK_WRITE
+            if (!j)
+                sdcard_writesector(dest_freeze_slot_start_sector + i + j, 1);
+            else
+                sdcard_writenextsector();
+#else
+            sdcard_writesector(dest_freeze_slot_start_sector + i + j, 0);
+#endif
+        }
+#ifdef USE_MULTIBLOCK_WRITE
+            // Close multi-sector write job
+        sdcard_writemultidone();
+#endif
+    }
+
+    JudeSetPointer(MPTR_NORMAL);
+}
+
+void scan_directory(unsigned char drive_id)
+{
+    unsigned char x, dir;
+    struct m65_dirent* dirent;
+
+    file_count = 0;
+
+    JudeSetPointer(MPTR_WAIT);
+
+    closeall();
+
+//  Add the pseudo disks
+    lcopy((unsigned long)"- NO DISK -         ", 0x40000L + (file_count * 64), 20);
+    file_count++;
+    if (drive_id == 0) {
+        lcopy((unsigned long)"- INTERNAL 3.5\" -   ", 0x40000L + (file_count * 64), 20);
+        file_count++;
+    }
+    
+    if (drive_id == 1) {
+        lcopy((unsigned long)"- 1565 DRIVE 1 -    ", 0x40000L + (file_count * 64), 20);
+        file_count++;
+    }
+    
+    lcopy((unsigned long)"- NEW D81 DD IMAGE -",0x40000L+(file_count*64),20);
+    file_count++;
+    
+    lcopy((unsigned long)"- NEW D65 HD IMAGE -",0x40000L+(file_count*64),20);
+    file_count++;
+
+    dir = opendir();
+    dirent = readdir(dir);
+    while (dirent && ((unsigned short)dirent != 0xffffU)) {
+        x = strlen(dirent->d_name);
+
+//    check DIR attribute of dirent
+      if (dirent->d_type & 0x10) {
+
+//        File is a directory
+          if (x < 60) {
+              lfill(0x40000L + (file_count * 64), ' ', 64);
+              lcopy((long)&dirent->d_name[0], 0x40000L + 1 + (file_count * 64), x);
+//            Put / at the start of directory names to make them obviously different
+              lpoke(0x40000L + (file_count * 64), '/');
+//            Don't list "." directory pointer
+              if (strcmp(".", dirent->d_name))
+                file_count++;
+          }
+      } else if (x > 4) {
+          if  ((!strncmp(&dirent->d_name[x - 4], ".D81", 4))
+              || (!strncmp(&dirent->d_name[x - 4], ".d81", 4))
+              || (!strncmp(&dirent->d_name[x - 4], ".D65", 4))
+              || (!strncmp(&dirent->d_name[x - 4], ".d65", 4))) {
+//        File is a disk image
+          lfill(0x40000L + (file_count * 64), ' ', 64);
+          lcopy((long)&dirent->d_name[0], 0x40000L + (file_count * 64), x);
+          file_count++;
+          }
+      }
+
+      dirent = readdir(dir);
+    }
+
+    closedir(dir);
+
+    JudeSetPointer(MPTR_NORMAL);
+}
+
 
 void set_palette(void)
 {

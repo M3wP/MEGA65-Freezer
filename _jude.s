@@ -27,6 +27,8 @@
 	.export		_JudeDownCtrl
 	.export		_JudeDeActivateCtrl
 	.export		_JudeActivateCtrl
+	.export		_JudeSetPointer
+
 	.export		_JudeEraseBkg
 	.export		__JudeDrawText
 	.export		__JudeDrawTextDirect
@@ -273,6 +275,12 @@ _JudeMain:
 
 ;	Check Keys
 @keys:
+		LDA	jude_actvpg
+		ORA	jude_actvpg + 1
+		ORA	jude_actvpg + 2
+		ORA	jude_actvpg + 3
+		BEQ	@dirty
+
 		JSR	__JudeSendKeys
 
 ;	Check Dirty
@@ -446,6 +454,56 @@ _JudeActivateCtrl:
 		MvDWMem	judeActvElem, zptrself
 
 		RTS
+
+
+;-----------------------------------------------------------
+_JudeSetPointer:
+;-----------------------------------------------------------
+		PHA
+
+		LDQMem	jude_mouseptr
+		STQMem	zregA
+
+		LDA	jude_mousevic
+		STA	zregBwl
+		LDA	jude_mousevic + 1
+		STA	zregBwl + 1
+
+		PLA
+
+		CMP	#MPTR_NORMAL
+		BEQ	@move
+
+		CMP	#MPTR_WAIT
+		BNE	@exit
+
+		INW	zregBwl
+		INW	zregBwl
+		INW	zregBwl
+
+		PHA
+
+		JSR	__MouseUnPickElement
+
+		PLA
+
+@move:
+		STA	jude_mptrstate
+
+;	Sprite pointer
+		LDZ	#$00
+		LDA	zregBwl
+		NOP
+		STA	(zregA), Z
+
+		INZ
+		LDA	zregBwl + 1
+		NOP
+		STA	(zregA), Z
+		
+@exit:
+		RTS
+
 
 ;-----------------------------------------------------------
 _JudeEraseBkg:
@@ -1013,6 +1071,32 @@ _JudeDefUIInit:
 		CPY	#$A8
 		BNE	@loop1
 
+		LDA	#$C0
+		STA	zregAb0
+		LDA	#$00
+		STA	zregAb1
+		STA	zregAb2
+		STA	zregAb3
+
+		LDQMem	zreg4
+		CLC
+		ADQMem	zregA
+		STQMem	zreg4
+
+		LDZ	#$00
+		LDY	#$00
+@loop2:
+		LDA	pointer1, Y
+		NOP
+		STA	(zreg4), Z
+
+		INY
+		INZ
+
+		CPY	#$A8
+		BNE	@loop2
+
+
 @cont6:
 		LDA	#$00
 		STA	karl_errorno
@@ -1328,6 +1412,10 @@ _JudeDefViewInit:
 		LDA	$D018
 		AND	#$FD
 		STA	$D018
+
+;	Set input to "raw" mode
+		LDA	#$80
+		TSB	$D611
 
 ;	Theme
 		LDA	#<CLR_EMPTY
@@ -1667,6 +1755,9 @@ _JudeDefViewInit:
 		STA	$D705
 
 @mouse:
+		LDA	#MPTR_NONE
+		STA	jude_mptrstate
+
 		MvDWMem	zreg4, jude_mouseram
 
 		LDA	zreg4
@@ -1683,6 +1774,9 @@ _JudeDefViewInit:
 		BPL	@loop1
 
 		JSR	__JudeThemeSetMouse
+
+		LDA	#MPTR_NORMAL
+		STA	jude_mptrstate
 
 ;	Sprite pointer location & 16bit
 		LDA	jude_mouseptr
@@ -2513,14 +2607,20 @@ __JudeSendKeys:
 		RTS
 
 @input:
+		MvDWMem	zreg4, jude_screeny0
+		LDA	zvalkey
+		LDZ	#$00
+		NOP
+		STA	(zreg4), Z
+
 		LDA	zvalkey + 1
 		AND	#KEY_MOD_SYS
 		BEQ	@tstfkeys
 
 ;	M65 is giving us values with the high bit set for
 ;	MEGA KEY + Key keys.
-		LDA	#$80
-		TRB	zvalkey
+;		LDA	#$80
+;		TRB	zvalkey
 		JMP	@findaccel
 
 @tstfkeys:
@@ -3395,9 +3495,14 @@ __MouseProcessMouse:
 		ORA	zreg4 + 3
 		BNE	@begin
 
+@exit:
 		RTS
 
 @begin:
+		LDA	jude_mptrstate
+		CMP	#MPTR_NORMAL
+		BNE	@exit
+
 		LDA	mouseCheck
 		CMP	#$10
 		BCS	@proc
@@ -4380,6 +4485,8 @@ jude_mouseram:
 jude_mouseptr:
 		.dword	$00000000
 jude_mousepal:
+		.byte	$00
+jude_mptrstate:
 		.byte	$00
 
 jude_screenw:

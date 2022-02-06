@@ -28,4 +28,8 @@ extern 	void	draw_thumbnail();
 
 extern	unsigned char thumbchars[6][20];
 
+extern	void	save_to_slot(void);
+
+extern	void 	scan_directory(unsigned char drive_id);
+
 #endif

@@ -10,6 +10,8 @@
 
 #include "freezer_ui.h"
 
+
+
 //==============================================================================
 
 
@@ -29,7 +31,6 @@ void	update_state_page(void){
 	dword	data;
 
 //	KarlClearZ();
-
 
 	draw_thumbnail();
 
@@ -295,8 +296,6 @@ void __fastcall__	FreezeModPrepare(void) {
   	set_palette();
 
  	request_freeze_region_list();
-
-  	update_state_page();
 };
 
 
@@ -304,8 +303,10 @@ void __fastcall__ FreezePgeInit(void) {
 	JudeDefPgeInit();
 
 //	Reset border widths
-  	POKE(0xD05CU, 80);
-  	POKE(0xD05DU, 0xC0);
+//	POKE(0xD05CU, 80);
+//	POKE(0xD05DU, 0xC0);
+
+  	update_state_page();
 }
 
 
@@ -412,8 +413,21 @@ void	__fastcall__	FreezeSlotResetChg(void) {
 
 	if (flg) {
 		freeze_reset();
-		// mega65_dos_exechelper("SPRITED.M65");
-		// KarlPanic();
+
+		KarlPanic();
+	};
+};
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void	__fastcall__	FreezeSlotSaveChg(void) {
+	word	flg	= (ctl_freeze_control1E._element._object.state & STATE_DOWN);
+
+	JudeDefCtlChange();
+
+	if (flg) {
+		save_to_slot();
 	};
 };
 
@@ -583,6 +597,20 @@ void	__fastcall__ 	FreezeJoySDsblChg(void) {
 		freeze_poke(0xFFD367dL, freeze_peek(0xFFD367dL) | 0x01);
 	}
 }
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeDiskImg0Chg(void) {
+	word	flg	= (ctl_freeze_control21._element._object.state & STATE_DOWN);
+
+	JudeDefCtlChange();
+
+	if (flg) {
+		scan_directory(0);
+	}
+}
+
 
 
 //------------------------------------------------------------------------------

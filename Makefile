@@ -65,7 +65,7 @@ LIBHEADERS=	m65_fat32.h\
 
 FREEZER.M65:	$(ASSFILES) $(HEADERS) libmega65.a
 	$(warning ======== Making: $@)
-	$(CL65) $(COPTS) $(LOPTS) --config jkjr.cfg -vm --add-source -l freezer.list -m freezer.map -o FREEZER.M65 $(ASSFILES) libmega65.a
+	$(CL65) $(COPTS) $(LOPTS) --config jkjr.cfg -vm --add-source -Ln freezer.vice -l freezer.list -m freezer.map -o FREEZER.M65 $(ASSFILES) libmega65.a
 
 
 %.o:	%.s
@@ -73,4 +73,8 @@ FREEZER.M65:	$(ASSFILES) $(HEADERS) libmega65.a
 	ca65 -o $@ $<
 
 libmega65.a:	$(LIBFILES) $(LIBHEADERS)
+	$(warning ======== Making: $@)
 	ar65 r $@ $(LIBFILES)
+
+run:	FREEZER.M65
+	m65 -l com6 -s 2000000 -F -4 -r $<

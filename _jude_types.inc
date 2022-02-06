@@ -77,6 +77,10 @@
 	.define CLR_SYSS_TEXT	$1000		;Specific system text colour
 	.define CLR_SYSS_CTRL	$2000		;Specific system control colour 
 
+	.define MPTR_NONE		$FF
+	.define	MPTR_NORMAL		$00
+	.define	MPTR_WAIT		$01
+
 
 	.struct	THEME
 		_name		.tag	NAME

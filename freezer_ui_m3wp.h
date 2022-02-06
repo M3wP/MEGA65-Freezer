@@ -19,6 +19,8 @@ extern void __fastcall__ 	FreezeSlotIncChg(void);
 extern void	__fastcall__	FreezeSlotResumeChg(void);
 extern void	__fastcall__	FreezeSlotResetChg(void);
 
+extern void	__fastcall__	FreezeSlotSaveChg(void);
+
 extern void	__fastcall__	FreezeModeAutoChg(void);
 extern void __fastcall__	FreezeMode4502Chg(void);
 
@@ -35,6 +37,8 @@ extern void	__fastcall__ 	FreezeCartDsblChg(void);
 
 extern void	__fastcall__ 	FreezeJoySEnblChg(void);
 extern void	__fastcall__ 	FreezeJoySDsblChg(void);
+
+extern void __fastcall__	FreezeDiskImg0Chg(void);
 
 extern void	__fastcall__ 	FreezeToolMonChg(void);
 extern void	__fastcall__ 	FreezeToolAudChg(void);

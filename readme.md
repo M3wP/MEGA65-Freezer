@@ -1,5 +1,5 @@
 # MEGA65 Freezer
-Copyright 2022, Daniel England, Paul Gardner-Steven, M.E.G.A..  All Rights Reserved.
+Copyright 2022, Daniel England, Paul Gardner-Stephen, M.E.G.A..  All Rights Reserved.
 
 
 ## Introduction

@@ -80,6 +80,12 @@
 #define CLR_SYSS_CTRL	0x2000		//Specific system control colour 
 
 
+#define MPTR_NONE		0xFF
+#define	MPTR_NORMAL		0x00
+#define	MPTR_WAIT		0x01
+
+
+
 typedef	struct	THEME {
 		karlName_t		_name;
 		byte			_data[11];
@@ -197,6 +203,10 @@ extern void	__fastcall__	JudeUnDownCtrl(void);
 extern void	__fastcall__	JudeDownCtrl(void);
 extern void	__fastcall__	JudeDeActivateCtrl(void);
 extern void	__fastcall__	JudeActivateCtrl(void);
+
+extern void __fastcall__	JudeSetPointer(byte pstate);
+
+
 extern void	__fastcall__	JudeEraseBkg(word colour);
 extern void	__fastcall__	JudeDrawAccel(void);
 

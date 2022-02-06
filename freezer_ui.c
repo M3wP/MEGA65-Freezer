@@ -19,7 +19,6 @@
 #include	"freezer_ui_m3wp.h"
 
 
-
 //==============================================================================
 //==============================================================================
 
@@ -126,7 +125,7 @@ judeUInterface_t uni_freeze_ui = {
 		"M65FREEZERM3WP  ",//		;name
 //	UI
 		DWRDTOFARPTRREC(0x1000, 0x0001),//		;mouseloc
-		DWRDTOFARPTRREC(0x1100, 0x0001),//		;mptrloc
+		DWRDTOFARPTRREC(0x1200, 0x0001),//		;mptrloc
 		0x01,//						;mousepal
 		NEARTOFARPTRREC(vws_freeze_ui),//		;views_p
 		0x01};//						;viewscnt
@@ -190,7 +189,7 @@ judePage_t	pge_freeze_page0 = {
 		sizeof(judePage_t),								//size
 		NEARTOFARPTRREC(lyr_freeze_layer),							//parent
 		NEARTOEVENTPTR(JudeDefPgePrepare),//		;prepare
-		NEARTOEVENTPTR(JudeDefPgeInit),//			;initialise
+		NEARTOEVENTPTR(FreezePgeInit),//			;initialise
 		NEARTOEVENTPTR(JudeDefPgeChange),//			;change
 		NEARTOEVENTPTR(JudeDefPgeRelease),//		;release
 		STATE_DEFCTRL,//			;state
@@ -487,13 +486,13 @@ judeControl_t txt_freeze_control0 = {
 		0xFF,//						;textaccel
 		0x00};//						;accelchar
 
-judeControl_t lbl_freeze_control1 = {
+judeLabelCtrl_t lbl_freeze_control1 = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel0),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -512,7 +511,9 @@ judeControl_t lbl_freeze_control1 = {
 		NEARTOFARPTRREC(str_freeze_ctrl1),//			; text_p
 		0x00,//						;textoffx
 		0x01,//						;textaccel
-		'O'};//						;accelchar
+		'o',//						;accelchar
+//Label
+		NEARTOFARPTRREC(rgp_freeze_control2)};
 
 judeRadioGrpCtrl_t rgp_freeze_control2 = {
 //Object
@@ -543,7 +544,7 @@ judeRadioGrpCtrl_t rgp_freeze_control2 = {
 //Radio Group
 		NEARTOFARPTRREC(cts_freeze_rgrp0),
 		0x02,
-		EVENTPTRNULLREC};//						
+		NEARTOFARPTRREC(lbl_freeze_control1)};//						
 
 
 karlFarPtr_t cts_freeze_rgrp0[] = {
@@ -583,7 +584,7 @@ judeRadioBtnCtrl_t rbt_freeze_control3 = {
 
 judeLabelCtrl_t lbl_freeze_control4 = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel0),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
@@ -606,7 +607,7 @@ judeLabelCtrl_t lbl_freeze_control4 = {
 		NEARTOFARPTRREC(str_freeze_ctrl4),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'F',//						;accelchar
+		'f',//						;accelchar
 //Label
 		EVENTPTRNULLREC};
 
@@ -776,13 +777,13 @@ judeControl_t txt_freeze_control8 = {
 		0xFF,//						;textaccel
 		0x00};//						;accelchar
 
-judeControl_t lbl_freeze_control9 = {
+judeLabelCtrl_t lbl_freeze_control9 = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -801,7 +802,9 @@ judeControl_t lbl_freeze_control9 = {
 		NEARTOFARPTRREC(str_freeze_ctrl9),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'R'};//						;accelchar
+		'r',//						;accelchar
+//Label
+		NEARTOFARPTRREC(ctl_freeze_controlA)};
 
 judeControl_t ctl_freeze_controlA = {
 //Object
@@ -830,13 +833,13 @@ judeControl_t ctl_freeze_controlA = {
 		0xFF,//						;textaccel
 		0x00};//						;accelchar
 
-judeControl_t lbl_freeze_controlB = {
+judeLabelCtrl_t lbl_freeze_controlB = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -855,7 +858,10 @@ judeControl_t lbl_freeze_controlB = {
 		NEARTOFARPTRREC(str_freeze_ctrlB),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'V'};//						;accelchar
+		'v',//						;accelchar
+//Label
+		NEARTOFARPTRREC(rgp_freeze_controlC)};
+
 
 judeRadioGrpCtrl_t rgp_freeze_controlC = {
 //Object
@@ -886,7 +892,7 @@ judeRadioGrpCtrl_t rgp_freeze_controlC = {
 //Radio Group
 		NEARTOFARPTRREC(cts_freeze_rgrp2),
 		0x02,
-		EVENTPTRNULLREC};//						
+		NEARTOFARPTRREC(lbl_freeze_controlB)};//						
 
 karlFarPtr_t cts_freeze_rgrp2[] = {
 		NEARTOFARPTRREC(rgp_freeze_controlC),
@@ -923,13 +929,13 @@ judeRadioBtnCtrl_t rbt_freeze_controlD = {
 		NEARTOFARPTRREC(rgp_freeze_controlC)};
 
 
-judeControl_t lbl_freeze_controlE = {
+judeLabelCtrl_t lbl_freeze_controlE = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -948,7 +954,10 @@ judeControl_t lbl_freeze_controlE = {
 		NEARTOFARPTRREC(str_freeze_ctrlE),//			; text_p
 		0x00,//						;textoffx
 		0x03,//						;textaccel
-		'T'};//						;accelchar
+		't',//						;accelchar
+//Label
+		NEARTOFARPTRREC(rgp_freeze_controlF)};
+
 
 judeRadioGrpCtrl_t rgp_freeze_controlF = {
 //Object
@@ -979,7 +988,7 @@ judeRadioGrpCtrl_t rgp_freeze_controlF = {
 //Radio Group
 		NEARTOFARPTRREC(cts_freeze_rgrp3),
 		0x02,
-		EVENTPTRNULLREC};//
+		NEARTOFARPTRREC(lbl_freeze_controlE)};//
 
 karlFarPtr_t cts_freeze_rgrp3[] = {
 		NEARTOFARPTRREC(rgp_freeze_controlF),
@@ -1015,13 +1024,13 @@ judeRadioBtnCtrl_t rbt_freeze_control10 = {
 //Radio Button
 		NEARTOFARPTRREC(rgp_freeze_controlF)};
 
-judeControl_t lbl_freeze_control11 = {
+judeLabelCtrl_t lbl_freeze_control11 = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel1),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1040,7 +1049,10 @@ judeControl_t lbl_freeze_control11 = {
 		NEARTOFARPTRREC(str_freeze_ctrl11),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'J'};//						;accelchar
+		'j',//						;accelchar
+//Label
+		NEARTOFARPTRREC(rgp_freeze_control12)};
+
 
 judeRadioGrpCtrl_t rgp_freeze_control12 = {
 //Object
@@ -1071,7 +1083,7 @@ judeRadioGrpCtrl_t rgp_freeze_control12 = {
 //Radio Group
 		NEARTOFARPTRREC(cts_freeze_rgrp4),
 		0x02,
-		EVENTPTRNULLREC};//
+		NEARTOFARPTRREC(lbl_freeze_control11)};//
 
 karlFarPtr_t cts_freeze_rgrp4[] = {
 		NEARTOFARPTRREC(rgp_freeze_control12),
@@ -1399,7 +1411,7 @@ judeControl_t ctl_freeze_control1E = {
 		NEARTOFARPTRREC(pnl_freeze_panel2),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(FreezeSlotSaveChg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1462,13 +1474,13 @@ judeControl_t txt_freeze_control1F = {
 		0xFF,//						;textaccel
 		0x00};//						;accelchar
 
-judeControl_t lbl_freeze_control20 = {
+judeLabelCtrl_t lbl_freeze_control20 = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel3),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1487,7 +1499,9 @@ judeControl_t lbl_freeze_control20 = {
 		NEARTOFARPTRREC(str_freeze_ctrl20),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'0'};//						;accelchar
+		'0',//						;accelchar
+//Label
+		NEARTOFARPTRREC(ctl_freeze_control21)};
 
 judeControl_t ctl_freeze_control21 = {
 //Object
@@ -1495,7 +1509,7 @@ judeControl_t ctl_freeze_control21 = {
 		NEARTOFARPTRREC(pnl_freeze_panel3),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(FreezeDiskImg0Chg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate

@@ -106,7 +106,7 @@ extern judePanel_t pnl_freeze_panel4;
 extern karlFarPtr_t pns_freeze_page0[];
 
 extern judeControl_t txt_freeze_control0;
-extern judeControl_t lbl_freeze_control1;
+extern judeLabelCtrl_t lbl_freeze_control1;
 extern judeRadioGrpCtrl_t rgp_freeze_control2;
 extern judeRadioBtnCtrl_t rbt_freeze_control3;
 extern karlFarPtr_t cts_freeze_rgrp0[];
@@ -120,20 +120,20 @@ extern karlFarPtr_t cts_freeze_rgrp1[];
 extern karlFarPtr_t cts_freeze_panel0[];
 
 extern judeControl_t txt_freeze_control8;
-extern judeControl_t lbl_freeze_control9;
+extern judeLabelCtrl_t lbl_freeze_control9;
 extern judeControl_t ctl_freeze_controlA;
-extern judeControl_t lbl_freeze_controlB;
+extern judeLabelCtrl_t lbl_freeze_controlB;
 extern judeRadioGrpCtrl_t rgp_freeze_controlC;
 extern judeRadioBtnCtrl_t rbt_freeze_controlD;
 
 extern karlFarPtr_t cts_freeze_rgrp2[];
 
-extern judeControl_t lbl_freeze_controlE;
+extern judeLabelCtrl_t lbl_freeze_controlE;
 
 extern judeRadioGrpCtrl_t rgp_freeze_controlF;
 extern judeRadioBtnCtrl_t rbt_freeze_control10;
 extern karlFarPtr_t cts_freeze_rgrp3[];
-extern judeControl_t lbl_freeze_control11;
+extern judeLabelCtrl_t lbl_freeze_control11;
 extern judeRadioGrpCtrl_t rgp_freeze_control12;
 extern judeRadioBtnCtrl_t rbt_freeze_control13;
 extern karlFarPtr_t cts_freeze_rgrp4[];
@@ -155,7 +155,7 @@ extern karlFarPtr_t cts_freeze_panel2[];
 
 
 extern judeControl_t txt_freeze_control1F;
-extern judeControl_t lbl_freeze_control20;
+extern judeLabelCtrl_t lbl_freeze_control20;
 extern judeControl_t ctl_freeze_control21;
 extern judeControl_t txt_freeze_control22;
 extern judeControl_t lbl_freeze_control23;
