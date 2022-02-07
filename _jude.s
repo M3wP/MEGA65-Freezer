@@ -37,6 +37,7 @@
 	.export		__JudeLogClrIsReverse
 	.export		_JudeEnqueueKey
 	.export		_JudeDequeueKey
+	.export		__JudeMoveActiveControl
 
 	.export		_JudeDefUIPrepare
 	.export		_JudeDefUIInit
@@ -2208,8 +2209,8 @@ __JudeMvActvNextPanel:
 
 		BEQ	@exit
 
-		LDA	zvalkey
-		CMP	#KEY_C64_CDOWN
+		LDA	zvalkey + 1
+		AND	#KEY_MOD_SHIFT
 		BEQ	@exit
 
 		LDX	zregDb0
@@ -2377,8 +2378,8 @@ __JudeMoveActiveControl:
 		LDA	#$00
 		STA	zregDb2
 
-		LDA	zvalkey
-		CMP	#KEY_C64_CDOWN
+		LDA	zvalkey + 1
+		AND	#KEY_MOD_SHIFT
 		BEQ	@rescont0
 
 		LDX	zregBb0
@@ -2458,8 +2459,8 @@ __JudeMoveActiveControl:
 		RTS
 
 @nextelem:
-		LDA	zvalkey
-		CMP	#KEY_C64_CDOWN
+		LDA	zvalkey + 1
+		AND	#KEY_MOD_SHIFT
 		BNE	@nxtelemup
 
 		INC	zregDb1
@@ -2506,8 +2507,8 @@ __JudeMoveActiveControl:
 		RTS					;ABORT
 
 @nextpanel:
-		LDA	zvalkey
-		CMP	#KEY_C64_CDOWN
+		LDA	zvalkey + 1
+		AND	#KEY_MOD_SHIFT
 		BNE	@nxtpnlup
 
 		INC	zregDb2
@@ -2612,6 +2613,11 @@ __JudeSendKeys:
 		LDZ	#$00
 		NOP
 		STA	(zreg4), Z
+		INZ
+		INZ
+		LDA	zvalkey + 1
+		NOP
+		STA	(zreg4), Z
 
 		LDA	zvalkey + 1
 		AND	#KEY_MOD_SYS
@@ -2632,7 +2638,16 @@ __JudeSendKeys:
 
 @fkey0:
 		CMP	#(KEY_M65_F14 + 1)	
-		LBCC	@findaccel
+		LBCS	@isdownctrl
+
+		LDA	zvalkey + 1
+		AND	#KEY_MOD_SHIFT
+		BEQ	@fkeycont
+
+		INC	zvalkey
+
+@fkeycont:
+		JMP	@findaccel
 
 @isdownctrl:
 		LDA	judeDownElem
@@ -2657,8 +2672,8 @@ __JudeSendKeys:
 		CMP	#KEY_C64_CDOWN
 		BEQ	@moveactv
 
-		CMP	#KEY_C64_CUP
-		BEQ	@moveactv
+;		CMP	#KEY_C64_CUP
+;		BEQ	@moveactv
 
 		MvDWMem	zptrself, judeActvElem
 

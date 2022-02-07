@@ -38,7 +38,11 @@ extern void	__fastcall__ 	FreezeCartDsblChg(void);
 extern void	__fastcall__ 	FreezeJoySEnblChg(void);
 extern void	__fastcall__ 	FreezeJoySDsblChg(void);
 
+extern void __fastcall__	FreezeDiskNum0Chg(void);
 extern void __fastcall__	FreezeDiskImg0Chg(void);
+
+extern void __fastcall__	FreezeDiskNum1Chg(void);
+extern void __fastcall__	FreezeDiskImg1Chg(void);
 
 extern void	__fastcall__ 	FreezeToolMonChg(void);
 extern void	__fastcall__ 	FreezeToolAudChg(void);

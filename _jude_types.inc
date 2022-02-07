@@ -199,12 +199,13 @@
 	.endstruct
 
 
-	.struct	LOGPANEL
+	.struct	LISTPANEL
 		_panel		.tag	PANEL
 		lines_p		.tag	FARPTR
 		linescnt	.byte
-		currlen		.byte
-		offsy		.byte
+		linewidth	.byte
+		currline	.byte
+		linesoff	.byte
 	.endstruct
 
 

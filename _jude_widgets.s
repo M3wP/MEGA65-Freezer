@@ -1,8 +1,10 @@
+;===========================================================
 	.include	"_karljr_types.inc"
 	.include	"_jude_types.inc"
+;===========================================================
 
-	.code
 
+;===========================================================
 	.export		_JudeDefCtlPrepare
 	.export		_JudeDefCtlInit
 	.export		_JudeDefCtlChange
@@ -21,7 +23,10 @@
 	.export		_JudeDefRBtChange
 
 	.export		_JudeRGroupReset
+;===========================================================
 
+
+;===========================================================
 	.import		_JudeActivatePage
 
 	.import		_JudeUnDownCtrl
@@ -46,6 +51,12 @@
 	.import		karl_errorno
 	.import		_KarlObjExcludeState
 	.import		_KarlObjIncludeState
+;===========================================================
+
+
+;===========================================================
+	.code
+;===========================================================
 
 ;-----------------------------------------------------------
 _JudeDefCtlPrepare:
@@ -77,11 +88,31 @@ _JudeDefCtlChange:
 		NOP
 		LDA	(zptrself), Z
 		AND	#STATE_CHANGED
-		BEQ	@exit
+		LBEQ	@exit
 
 		LDA	#$00
 		STA	zregAb0
 
+		NOP
+		LDA	(zptrself), Z
+		AND	#STATE_ACTIVE
+		BEQ	@chkdown
+
+		LDZ	#OBJECT::options + 1
+		NOP
+		LDA	(zptrself), Z
+		AND	#>OPT_AUTODOWN
+		BEQ	@chkdown
+
+		JSR	_JudeDownCtrl
+
+		LDA	#$01
+		STA	zregAb0
+
+		BRA	@chnged
+
+@chkdown:
+		LDZ	#OBJECT::state
 		NOP
 		LDA	(zptrself), Z
 ;		LDZ	#OBJECT::oldstate + 1
@@ -89,7 +120,7 @@ _JudeDefCtlChange:
 ;		STA	(zptrself), Z
 ;		LDZ	#OBJECT::state
 		AND	#STATE_DOWN
-		BEQ	@dirty
+		BEQ	@chnged
 
 		LDA	#$01
 		STA	zregAb0
@@ -98,7 +129,7 @@ _JudeDefCtlChange:
 		NOP
 		LDA	(zptrself), Z
 		AND	#OPT_DOWNCAPTURE
-		BNE	@dirty
+		BNE	@chnged
 
 		LDZ	#OBJECT::state
 		NOP
@@ -108,7 +139,7 @@ _JudeDefCtlChange:
 
 		MvDWZ	judeDownElem
 
-@dirty:
+@chnged:
 		LDA	#STATE_CHANGED
 		JSR	_KarlObjExcludeState
 
@@ -569,11 +600,18 @@ _JudeDefEdtKeypress:
 
 @downkeys:
 		LDA	zvalkey
+		CMP	#KEY_C64_CDOWN
+		BEQ	@navkey
+
 		CMP	#KEY_ASC_CR
 		BNE	@input
 
 		JSR	_JudeUnDownCtrl
 		RTS
+
+@navkey:
+		JSR	_JudeUnDownCtrl
+		
 
 @input:
 		MvDWObjImm	zregA, zptrself, CONTROL::text_p

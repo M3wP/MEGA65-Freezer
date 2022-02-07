@@ -306,8 +306,8 @@ extern byte _zkarljr[SIZ_ZP_KARLJR];
 
 #define	KEY_C64_CRIGHT	0x1D
 #define	KEY_C64_CDOWN	0x11
-#define KEY_C64_CUP		0x91
-#define KEY_C64_CLEFT	0x9D
+//#define KEY_C64_CUP		0x91
+//#define KEY_C64_CLEFT	0x9D
 
 #define	KEY_C64_DEL		0x14
 #define KEY_C64_INS		0x94
@@ -368,6 +368,7 @@ extern byte _zkarljr[SIZ_ZP_KARLJR];
 #define OPT_TEXTACCEL2X	0x40
 #define OPT_TEXTCONTMRK 0x80
 #define OPT_NOAUTOCHKOF 0x0100
+#define OPT_AUTODOWN	0x0200
 
 #define	ERROR_ABORT		0xFF
 #define	ERROR_NONE		0x00

@@ -158,12 +158,12 @@ extern judeControl_t txt_freeze_control1F;
 extern judeLabelCtrl_t lbl_freeze_control20;
 extern judeControl_t ctl_freeze_control21;
 extern judeControl_t txt_freeze_control22;
-extern judeControl_t lbl_freeze_control23;
+extern judeLabelCtrl_t lbl_freeze_control23;
 extern judeControl_t ctl_freeze_control24;
-extern judeControl_t lbl_freeze_control25;
+extern judeLabelCtrl_t lbl_freeze_control25;
 extern judeControl_t ctl_freeze_control26;
 extern judeControl_t txt_freeze_control27;
-extern judeControl_t lbl_freeze_control28;
+extern judeLabelCtrl_t lbl_freeze_control28;
 extern judeControl_t ctl_freeze_control29;
 
 extern karlFarPtr_t cts_freeze_panel3[];

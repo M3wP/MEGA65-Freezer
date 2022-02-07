@@ -22,13 +22,53 @@
  // 		__asm__ ("INC $D020");
  // 		__asm__ ("JMP %g", halt);
 
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void	update_drive_num0(void) {
+	byte	i, j;
+
+  	decimal_to_string(freeze_peek(0x10113L));
+   	j = 0;
+   	for (i = 0; i < 5; i++) {
+   		if (string_buffer[i] != ' ') {
+   			str_freeze_ctrl24[j] = string_buffer[i];
+   			j++;
+   		}
+   	}
+   	str_freeze_ctrl24[j] = 0x00;
+
+	cntrl_state_dirty(&ctl_freeze_control24);
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void	update_drive_num1(void) {
+	byte	i, j;
+
+  	decimal_to_string(freeze_peek(0x10114L));
+   	j = 0;
+   	for (i = 0; i < 5; i++) {
+   		if (string_buffer[i] != ' ') {
+   			str_freeze_ctrl29[j] = string_buffer[i];
+   			j++;
+   		}
+   	}
+   	str_freeze_ctrl29[j] = 0x00;
+
+	cntrl_state_dirty(&ctl_freeze_control29);
+}
+
+
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void	update_state_page(void){
 //	karlFarPtr_t* self = (karlFarPtr_t *)(zptrself);
-	karlFarPtr_t obj;
-	byte	i, j;
-	dword	data;
+  	karlFarPtr_t obj;
+  	dword data;
+  	byte	i;
 
 //	KarlClearZ();
 
@@ -63,20 +103,8 @@ void	update_state_page(void){
 		ctl_freeze_control1C.text_p.hiword = 0x0000;
   	}
 
-	obj.loword = (word)(&ctl_freeze_control16);
-	obj.hiword = 0x0000;
-
-	data = *((dword *)&obj);
-	zptrself = data;
-	KarlObjIncludeState(STATE_DIRTY);
-
-	obj.loword = (word)(&ctl_freeze_control1C);
-	obj.hiword = 0x0000;
-
-	data = *((dword *)&obj);
-	zptrself = data;
-	KarlObjIncludeState(STATE_DIRTY);
-
+  	cntrl_state_dirty(&ctl_freeze_control16);
+	cntrl_state_dirty(&ctl_freeze_control1C);
 
 //	CPU Frequency
   	i = detect_cpu_speed();
@@ -111,16 +139,11 @@ void	update_state_page(void){
 	zptrself = data;
 	JudeRGroupReset(i);
  
-// ROM version
+//  ROM version
 	ctl_freeze_controlA.text_p.loword = (word)(detect_rom());
 	ctl_freeze_controlA.text_p.hiword = 0x0000;
 
-	obj.loword = (word)(&ctl_freeze_controlA);
-	obj.hiword = 0x0000;
-
-	data = *((dword *)&obj);
-	zptrself = data;
-	KarlObjIncludeState(STATE_DIRTY);
+  	cntrl_state_dirty(&ctl_freeze_controlA);
 
 //	Cartridge enable
 	i = (freeze_peek(0xffd367dL) & 0x01) ? 0 : 1;
@@ -143,25 +166,8 @@ void	update_state_page(void){
 	JudeRGroupReset(i);
 
 //	Draw drive numbers
-  	decimal_to_string(freeze_peek(0x10113L));
-   	j = 0;
-   	for (i = 0; i < 5; i++) {
-   		if (string_buffer[i] != ' ') {
-   			str_freeze_ctrl24[j] = string_buffer[i];
-   			j++;
-   		}
-   	}
-   	str_freeze_ctrl24[j] = 0x00;
-
-  	decimal_to_string(freeze_peek(0x10114L));
-   	j = 0;
-   	for (i = 0; i < 5; i++) {
-   		if (string_buffer[i] != ' ') {
-   			str_freeze_ctrl29[j] = string_buffer[i];
-   			j++;
-   		}
-   	}
-   	str_freeze_ctrl24[j] = 0x00;
+  	update_drive_num0();
+  	update_drive_num1();
 
 
 /*	Display info from the process descriptor
@@ -222,6 +228,10 @@ void	update_state_page(void){
             	process_descriptor.d81_image1_namelen < 32 ? process_descriptor.d81_image1_namelen : 32);
     	}
     }
+
+	cntrl_state_dirty(&txt_freeze_control19);
+	cntrl_state_dirty(&txt_freeze_control22);
+	cntrl_state_dirty(&txt_freeze_control27);
 
  	while (PEEK(0xD012U) < 0xf8)
     	continue;
@@ -601,6 +611,20 @@ void	__fastcall__ 	FreezeJoySDsblChg(void) {
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+void __fastcall__	FreezeDiskNum0Chg(void) {
+	word	flg	= (ctl_freeze_control24._element._object.state & STATE_DOWN);
+
+	JudeDefCtlChange();
+
+	if (flg) {
+		freeze_poke(0x10113L, freeze_peek(0x10113L) ^ 2);
+		update_drive_num0();
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void __fastcall__	FreezeDiskImg0Chg(void) {
 	word	flg	= (ctl_freeze_control21._element._object.state & STATE_DOWN);
 
@@ -611,6 +635,32 @@ void __fastcall__	FreezeDiskImg0Chg(void) {
 	}
 }
 
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeDiskNum1Chg(void) {
+	word	flg	= (ctl_freeze_control29._element._object.state & STATE_DOWN);
+
+	JudeDefCtlChange();
+
+	if (flg) {
+		freeze_poke(0x10114L, freeze_peek(0x10114L) ^ 2);
+		update_drive_num1();
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeDiskImg1Chg(void) {
+	word	flg	= (ctl_freeze_control26._element._object.state & STATE_DOWN);
+
+	JudeDefCtlChange();
+
+	if (flg) {
+		scan_directory(1);
+	}
+}
 
 
 //------------------------------------------------------------------------------

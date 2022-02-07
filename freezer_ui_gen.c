@@ -37,6 +37,21 @@ unsigned char c64_palette[64]={
 unsigned char colour_table[256];
 
 
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void  cntrl_state_dirty(void* ctrl) {
+  karlFarPtr_t obj;
+  dword data;
+
+  obj.loword = (word)ctrl;
+  obj.hiword = 0x0000;
+
+  data = *((dword *)&obj);
+  zptrself = data;
+  KarlObjIncludeState(STATE_DIRTY); 
+}
+
+
 void save_to_slot(void) {
     uint32_t i;
     uint32_t j;
@@ -451,14 +466,14 @@ void draw_thumbnail(void)
   uint32_t thumbnail_sector = find_thumbnail_offset();
 
   // Can't find thumbnail area?  Then show no thumbnail
-  if (thumbnail_sector == 0xFFFFFFFFL) {
+  if (thumbnail_sector == 0xFFFFFFFFU) {
     lfill(0x50000L, 0, 10 * 6 * 64);
     return;
   }
   // Copy thumbnail memory to buffer
   for (i = 0; i < 8; i++) {
     sdcard_readsector(freeze_slot_start_sector + thumbnail_sector + i);
-    lcopy((long)sector_buffer, thumbnail_buffer + (i * 0x200), 0x200);
+    lcopy((long)sector_buffer, (long)thumbnail_buffer + (i * 0x200), 0x200);
   }
 
   // Pick colours of all pixels in the thumbnail

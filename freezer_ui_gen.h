@@ -32,4 +32,6 @@ extern	void	save_to_slot(void);
 
 extern	void 	scan_directory(unsigned char drive_id);
 
+extern	void	cntrl_state_dirty(void* ctrl);
+
 #endif

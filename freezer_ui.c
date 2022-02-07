@@ -1557,13 +1557,13 @@ judeControl_t txt_freeze_control22 = {
 		0xFF,//						;textaccel
 		0x00};//						;accelchar
 
-judeControl_t lbl_freeze_control23 = {
+judeLabelCtrl_t lbl_freeze_control23 = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel3),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1582,7 +1582,9 @@ judeControl_t lbl_freeze_control23 = {
 		NEARTOFARPTRREC(str_freeze_ctrl23),//			; FACE_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'8'};//						;accelchar
+		'8',//						;accelchar\
+//Label
+		NEARTOFARPTRREC(ctl_freeze_control24)};
 
 judeControl_t ctl_freeze_control24 = {
 //Object
@@ -1590,7 +1592,7 @@ judeControl_t ctl_freeze_control24 = {
 		NEARTOFARPTRREC(pnl_freeze_panel3),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(FreezeDiskNum0Chg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1611,13 +1613,13 @@ judeControl_t ctl_freeze_control24 = {
 		0xFF,//						;textaccel
 		0x00};//						;accelchar
 
-judeControl_t lbl_freeze_control25 = {
+judeLabelCtrl_t lbl_freeze_control25 = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel3),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1636,7 +1638,10 @@ judeControl_t lbl_freeze_control25 = {
 		NEARTOFARPTRREC(str_freeze_ctrl25),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'1'};//						;accelchar
+		'1',//						;accelchar\
+//Label
+		NEARTOFARPTRREC(ctl_freeze_control26)};
+
 
 judeControl_t ctl_freeze_control26 = {
 //Object
@@ -1692,13 +1697,13 @@ judeControl_t txt_freeze_control27 = {
 		0xFF,//						;textaccel
 		0x00};//						;accelchar
 
-judeControl_t lbl_freeze_control28 = {
+judeLabelCtrl_t lbl_freeze_control28 = {
 //Object
-		sizeof(judeControl_t),								//size
+		sizeof(judeLabelCtrl_t),								//size
 		NEARTOFARPTRREC(pnl_freeze_panel3),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(JudeDefLblChange),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1717,7 +1722,10 @@ judeControl_t lbl_freeze_control28 = {
 		NEARTOFARPTRREC(str_freeze_ctrl28),//			; FACE_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'9'};//						;accelchar
+		'9',//						;accelchar\
+//Label
+		NEARTOFARPTRREC(ctl_freeze_control29)};
+
 
 judeControl_t ctl_freeze_control29 = {
 //Object
@@ -1725,7 +1733,7 @@ judeControl_t ctl_freeze_control29 = {
 		NEARTOFARPTRREC(pnl_freeze_panel3),							//parent
 		NEARTOEVENTPTR(JudeDefCtlPrepare),//		;prepare
 		NEARTOEVENTPTR(JudeDefCtlInit),//			;initialise
-		NEARTOEVENTPTR(JudeDefCtlChange),//			;change
+		NEARTOEVENTPTR(FreezeDiskNum1Chg),//			;change
 		NEARTOEVENTPTR(JudeDefCtlRelease),//		;release
 		STATE_DEFCTRL,//			;state
 		0x0000,//					;oldstate
@@ -1908,7 +1916,7 @@ judeControl_t btn_freeze_control2E = {
 		NEARTOFARPTRREC(str_freeze_ctrl2E),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'M'};//						;accelchar
+		'm'};//						;accelchar
 
 judeControl_t btn_freeze_control2F = {
 //Object
@@ -1935,7 +1943,7 @@ judeControl_t btn_freeze_control2F = {
 		NEARTOFARPTRREC(str_freeze_ctrl2F),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'A'};//						;accelchar
+		'a'};//						;accelchar
 
 judeControl_t btn_freeze_control30 = {
 //Object
@@ -1962,4 +1970,4 @@ judeControl_t btn_freeze_control30 = {
 		NEARTOFARPTRREC(str_freeze_ctrl30),//			; text_p
 		0x00,//						;textoffx
 		0x00,//						;textaccel
-		'S'};//						;accelchar
+		's'};//						;accelchar

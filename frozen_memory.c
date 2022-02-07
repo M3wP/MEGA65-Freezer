@@ -48,7 +48,7 @@ uint32_t find_thumbnail_offset(void)
     if (region_length & 0x1ff)
       freeze_slot_offset++;
   }
-  return 0xFFFFFFFFL;
+  return 0xFFFFFFFFU;
 }
 
 /* Convert a requested address to a location in the freeze slot,
@@ -101,7 +101,7 @@ uint32_t address_to_freeze_slot_offset(uint32_t address)
       return freeze_slot_offset;
     }
   }
-  return 0xFFFFFFFFL;
+  return 0xFFFFFFFFU;
 }
 
 unsigned char freeze_peek(uint32_t addr)
@@ -113,7 +113,7 @@ unsigned char freeze_peek(uint32_t addr)
   offset = freeze_slot_offset & 0x1ff;
   freeze_slot_offset = freeze_slot_offset >> 9L;
 
-  if (freeze_slot_offset == 0xFFFFFFFFL) {
+  if (freeze_slot_offset == 0xFFFFFFFFU) {
     // Invalid / unfrozen memory
     return 0x55;
   }
@@ -136,7 +136,7 @@ unsigned char freeze_fetch_sector(uint32_t addr, unsigned char* buffer)
   offset = freeze_slot_offset & 0x1ff;
   freeze_slot_offset = freeze_slot_offset >> 9L;
 
-  if (freeze_slot_offset == 0xFFFFFFFFL) {
+  if (freeze_slot_offset == 0xFFFFFFFFU) {
     // Invalid / unfrozen memory
     return 0x55;
   }
@@ -164,7 +164,7 @@ unsigned char freeze_fetch_sector_32(uint32_t addr, uint32_t dest, unsigned int 
   offset = freeze_slot_offset & 0x1ff;
   freeze_slot_offset = freeze_slot_offset >> 9L;
 
-  if (freeze_slot_offset == 0xFFFFFFFFL) {
+  if (freeze_slot_offset == 0xFFFFFFFFU) {
     // Invalid / unfrozen memory
     return 0x55;
   }
@@ -188,7 +188,7 @@ unsigned char freeze_store_sector(uint32_t addr, unsigned char* buffer)
   offset = freeze_slot_offset & 0x1ff;
   freeze_slot_offset = freeze_slot_offset >> 9L;
 
-  if (freeze_slot_offset == 0xFFFFFFFFL) {
+  if (freeze_slot_offset == 0xFFFFFFFFU) {
     // Invalid / unfrozen memory
     return 0x55;
   }
@@ -214,7 +214,7 @@ unsigned char freeze_store_sector_32(uint32_t addr, uint32_t src, unsigned int c
   offset = freeze_slot_offset & 0x1ff;
   freeze_slot_offset = freeze_slot_offset >> 9L;
 
-  if (freeze_slot_offset == 0xFFFFFFFFL) {
+  if (freeze_slot_offset == 0xFFFFFFFFU) {
     // Invalid / unfrozen memory
     return 0x55;
   }
@@ -236,7 +236,7 @@ void freeze_poke(uint32_t addr, unsigned char v)
   offset = freeze_slot_offset & 0x1ff;
   freeze_slot_offset = freeze_slot_offset >> 9L;
 
-  if (freeze_slot_offset == 0xFFFFFFFFL) {
+  if (freeze_slot_offset == 0xFFFFFFFFU) {
     // Invalid / unfrozen memory
     return;
   }
