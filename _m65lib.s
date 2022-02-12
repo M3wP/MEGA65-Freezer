@@ -1,6 +1,6 @@
-	.setcpu "65C02"
+;	.setcpu "65C02"
 	.export _mega65_dos_attachd81
-	.export _mega65_dos_chdir
+	.export _mega65_dos_chdir, _mega65_dos_chdirroot
 	.export _mega65_dos_exechelper
 	.export	_fetch_freeze_region_list_from_hypervisor
 	.export _find_freeze_slot_start_sector
@@ -114,6 +114,22 @@ _mega65_dos_attachd81:
 	lda #$2E     		; dos_setname Hypervisor trap
 	STA $D640		; Do hypervisor trap
 	NOP			; Wasted instruction slot required following hyper trap instruction
+	
+	BCC	@return
+
+        lda #$22
+        sta $d640
+        nop
+
+	BCC	@return
+
+
+	LDA	#$34
+	STA	$D640
+	CLV
+
+	BCC	@return
+
 	;; XXX Check for error (carry would be clear)
 
 	;; Try to attach it
@@ -121,14 +137,24 @@ _mega65_dos_attachd81:
 	STA $D640
 	NOP
 
+@return:
 	;; return inverted carry flag, so result of 0 = success
 	PHP
 	PLA
 	AND #$01
 	EOR #$01
 	LDX #$00
-	
+
 	RTS
+
+
+_mega65_dos_chdirroot:
+;	Change to root directory
+		LDA #$3C
+		STA $D640
+		NOP
+		RTS
+
 
 _mega65_dos_chdir:
 	;; char mega65_dos_chdir(char *dir_name);

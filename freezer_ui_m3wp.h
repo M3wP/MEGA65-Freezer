@@ -2,12 +2,34 @@
 #else
 #define	INCLUDE_FREEZER_UI_M3WP_H
 
-//#include "karljr.h"
-//#include "jude.h"
-//#include "jude_widgets.h"
+#include "karljr.h"
+#include "jude.h"
+#include "jude_widgets.h"
+
+typedef	struct	LISTBOX {
+		judeControl_t	_control;
+
+		EVENTPTR		select;
+
+		karlFarPtr_t	lines_p;
+		byte			linescnt;
+		byte			linewidth;
+		byte			currline;
+		byte			linesoff;
+		byte			hotline;
+		byte			selline;
+	} freezeListBox_t;
+
+extern void __fastcall__	FreezeLBxPresent(void);
+extern void __fastcall__	FreezeLBxPressed(void);
+extern void __fastcall__	FreezeLBxChange(void);
+
+extern void	__fastcall__	FreezeImgLstSelect(void);
 
 extern void __fastcall__ 	FreezeModPrepare(void);
+
 extern void __fastcall__ 	FreezePgeInit(void);
+extern void __fastcall__ 	FreezePage0Keypress(void);
 
 extern void	__fastcall__	FreezeMenuBarPrs(void);
 

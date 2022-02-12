@@ -4,6 +4,12 @@
 
 struct process_descriptor_t process_descriptor;
 
+extern unsigned short file_count;
+extern unsigned short dir_depth;
+extern unsigned char drive_id;
+extern char disk_name_return[32];
+extern unsigned char disk_filecnt;
+
 
 extern unsigned char c64_palette[64];
 
@@ -30,7 +36,8 @@ extern	unsigned char thumbchars[6][20];
 
 extern	void	save_to_slot(void);
 
-extern	void 	scan_directory(unsigned char drive_id);
+extern	void 	scan_directory(unsigned char id);
+extern 	void	draw_directory_contents(void);
 
 extern	void	cntrl_state_dirty(void* ctrl);
 

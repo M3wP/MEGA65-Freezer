@@ -29,6 +29,7 @@
 	.export		_JudeActivateCtrl
 	.export		_JudeSetPointer
 
+	.export		__JudeEraseLine
 	.export		_JudeEraseBkg
 	.export		__JudeDrawText
 	.export		__JudeDrawTextDirect
@@ -62,11 +63,16 @@
 	.export		_JudeDefPnlRelease
 	.export		_JudeDefPnlPresent
 
+	.export		__JudeProcessAccelerators
+
 	.export		jude_cellsize
 	.export		jude_coloury0
 	.export		jude_screeny0
 	.export		jude_actvpg
 	.export		judeDownElem
+
+	.export		_mouseXCol = mouseXCol
+	.export		_mouseYRow = mouseYRow
 
 
 	.import		_KarlASCIIToScreen
@@ -82,7 +88,7 @@
 	.import		karl_changed
 	.import		karl_lock
 	.import		__KarlCallObjLstMethod
-	.import		karl_errorno
+	.import		_karl_errorno
 
 	.import		_KarlDefModPrepare
 	.import		_KarlDefModInit
@@ -106,7 +112,7 @@ _JudeInit:
 		STA	jude_theme - .sizeof(NAME), X
 
 		INX
-		CPX	#(.sizeof(NAME) + $0A)
+		CPX	#(.sizeof(NAME) + $0F)
 		BNE	@loop0
 
 
@@ -122,7 +128,7 @@ __JudeViewInit:
 		MvDWMem	zreg8, zptrself
 
 		LDA	#ERROR_NONE
-		STA	karl_errorno
+		STA	_karl_errorno
 
 ;	Check prepared
 		LDZ	#OBJECT::state
@@ -155,7 +161,7 @@ __JudeViewInit:
 
 		JSR	__KarlCallObjLstMethod
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		LBNE	@exit
 
 		LDA	#VIEW::pagescnt
@@ -175,12 +181,12 @@ __JudeViewInit:
 
 		JSR	__KarlCallObjLstMethod
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		LBNE	@exit
 
 ;	Init
 		LDA	#ERROR_NONE
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		LDZ	#OBJECT::initialise
 		NOP
@@ -231,7 +237,7 @@ __JudeViewInit:
 		JSR	_JudeActivatePage
 
 		LDA	#ERROR_NONE
-		STA	karl_errorno
+		STA	_karl_errorno
 
 @exit:
 		RTS
@@ -264,6 +270,12 @@ _JudeMain:
 ;		LDA	jude_proc
 ;		BNE	@done
 
+		LDA	jude_actvpg
+		ORA	jude_actvpg + 1
+		ORA	jude_actvpg + 2
+		ORA	jude_actvpg + 3
+		BEQ	@done
+
 ;	Check Changed
 		LDA	karl_changed
 		BEQ	@keys
@@ -276,12 +288,6 @@ _JudeMain:
 
 ;	Check Keys
 @keys:
-		LDA	jude_actvpg
-		ORA	jude_actvpg + 1
-		ORA	jude_actvpg + 2
-		ORA	jude_actvpg + 3
-		BEQ	@dirty
-
 		JSR	__JudeSendKeys
 
 ;	Check Dirty
@@ -320,6 +326,8 @@ _JudeDeActivatePage:
 ;**FIXME	Update view?
 
 		JSR	__MouseUnPickElement
+		JSR	_JudeDeActivateCtrl
+
 		RTS
 
 
@@ -504,6 +512,122 @@ _JudeSetPointer:
 		
 @exit:
 		RTS
+
+
+
+;-----------------------------------------------------------
+__JudeEraseLine:
+;	IN	zregAwl		colour
+;	IN	zregAb3		Max width
+;	IN	zregBb1		x pos
+;	IN	zregBb2		y pos
+;-----------------------------------------------------------
+;		SEI
+; @halt:
+;		INC	$D020
+;		JMP	@halt
+
+		LDA	zregAwl
+		STA	zreg9b0			;colour
+		LDX	zregAwl + 1
+		STX	zreg9b1
+
+		LDA	zregAb3
+		STA	zregBb3
+
+		LDA	jude_cellsize
+		CMP	#$02
+		BNE	@single
+
+		LDA	zregBb1
+		ASL
+		STA	zregBb1
+
+@single:
+		LDA	zreg9b0
+		LDX	zreg9b1
+		
+		JSR	__JudeLogClrIsReverse
+		BCC	@text
+		
+		LDA	#KEY_ASC_SPACE
+		JSR	_KarlASCIIToScreen
+		ORA	#$80
+
+		JMP	@cont
+
+@text:
+		LDA	#KEY_ASC_SPACE
+		JSR	_KarlASCIIToScreen
+		
+@cont:
+		STA	zreg9b2		;background char
+
+		LDA	zreg9b0
+		LDX	zreg9b1
+		JSR	_JudeLogClrToSys
+
+		STA	zreg9b0		;system colour
+
+		LDA	zregBb2
+		ASL
+		ASL
+		TAX
+
+		LDA	jude_screeny0, X
+		STA	zptrscreen		;screen ptr
+		LDA	jude_screeny0 + 1, X
+		STA	zptrscreen + 1
+		LDA	jude_screeny0 + 2, X
+		STA	zptrscreen + 2
+		LDA	jude_screeny0 + 3, X
+		STA	zptrscreen + 3
+
+		LDA	jude_coloury0, X
+		STA	zptrcolour		;colour ptr
+		LDA	jude_coloury0 + 1, X
+		STA	zptrcolour + 1
+		LDA	jude_coloury0 + 2, X
+		STA	zptrcolour + 2
+		LDA	jude_coloury0 + 3, X
+		STA	zptrcolour + 3
+
+		LDZ	zregBb1
+		LDX	zregBb3
+		DEX
+
+
+;***FIXME!!!
+;	Replace this loopw with a dma job.
+
+@loopw:
+		LDA	zreg9b2				;char to screen ram
+		NOP
+		STA	(zptrscreen), Z
+		
+		LDA	jude_cellsize
+		CMP	#$02
+		BNE	@clrsingle
+
+		INZ
+
+		LDA	#00				;hi char to screen ram
+		NOP
+		STA	(zptrscreen), Z
+
+@clrsingle:
+		LDA	zreg9b0				;colour to colour ram
+		NOP
+		STA	(zptrcolour), Z
+
+		INZ
+
+@cellcont:
+		DEX
+		BPL	@loopw
+
+		RTS
+
 
 
 ;-----------------------------------------------------------
@@ -1028,7 +1152,7 @@ _JudeDefUIPrepare:
 
 		JSR	__KarlCallObjLstMethod
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		BNE	@exit
 
 ;		LDA	#$01
@@ -1100,7 +1224,7 @@ _JudeDefUIInit:
 
 @cont6:
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -1109,7 +1233,7 @@ _JudeDefUIInit:
 _JudeDefUIChange:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -1118,7 +1242,7 @@ _JudeDefUIChange:
 _JudeDefUIRelease:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -1188,7 +1312,7 @@ _JudeDefViewPrepare:
 
 		JSR	__KarlCallObjLstMethod
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		BEQ	@prep
 
 		RTS
@@ -1257,7 +1381,7 @@ _JudeDefViewPrepare:
 		STA	(zptrself), Z
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 ;		LDA	#$01
 ;		STA	zreg2b3
@@ -1414,8 +1538,10 @@ _JudeDefViewInit:
 		AND	#$FD
 		STA	$D018
 
-;	Set input to "raw" mode
-		LDA	#$80
+;	Set input to "raw" mode - $02 is required to 
+;	fix bug.
+;***FIXME
+		LDA	#$82
 		TSB	$D611
 
 ;	Theme
@@ -1846,7 +1972,7 @@ _JudeDefViewInit:
 
 		JSR	__KarlCallObjLstMethod
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		BNE	@exit
 
 		LDA	#VIEW::barscnt
@@ -1865,7 +1991,7 @@ _JudeDefViewInit:
 
 		JSR	__KarlCallObjLstMethod
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		BNE	@exit
 
 		LDA	#VIEW::pagescnt
@@ -1885,7 +2011,7 @@ _JudeDefViewInit:
 		JSR	__KarlCallObjLstMethod
 
 ;		LDA	#$00
-;		STA	karl_errorno
+;		STA	_karl_errorno
 
 @exit:
 		RTS
@@ -1895,7 +2021,7 @@ _JudeDefViewInit:
 _JudeDefViewChange:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -1904,7 +2030,7 @@ _JudeDefViewChange:
 _JudeDefViewRelease:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -1913,7 +2039,7 @@ _JudeDefViewRelease:
 _JudeDefLyrPrepare:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 ;		LDA	#$01
 ;		STA	zreg2b3
@@ -1927,7 +2053,7 @@ _JudeDefLyrPrepare:
 _JudeDefLyrInit:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -1936,7 +2062,7 @@ _JudeDefLyrInit:
 _JudeDefLyrChange:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -1945,7 +2071,7 @@ _JudeDefLyrChange:
 _JudeDefLyrRelease:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -1975,7 +2101,7 @@ _JudeDefPgePrepare:
 		JSR	_KarlObjIncludeState
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2000,7 +2126,7 @@ _JudeDefPgeInit:
 		JSR	__KarlCallObjLstMethod
 
 ;		LDA	#$00
-;		STA	karl_errorno
+;		STA	_karl_errorno
 
 		RTS
 
@@ -2009,7 +2135,7 @@ _JudeDefPgeInit:
 _JudeDefPgeChange:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2018,7 +2144,7 @@ _JudeDefPgeChange:
 _JudeDefPgeRelease:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2082,7 +2208,7 @@ _JudeDefPgePresent:
 		JSR	_KarlObjExcludeState
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2096,7 +2222,7 @@ _JudeDefPnlPrepare:
 		JSR	_KarlObjIncludeState
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2105,7 +2231,7 @@ _JudeDefPnlPrepare:
 _JudeDefPnlInit:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2122,7 +2248,7 @@ _JudeDefPnlChange:
 		JSR	_KarlObjIncludeState
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2131,7 +2257,7 @@ _JudeDefPnlChange:
 _JudeDefPnlRelease:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2182,7 +2308,7 @@ _JudeDefPnlPresent:
 		JSR	_KarlObjExcludeState
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -2668,14 +2794,26 @@ __JudeSendKeys:
 		JMP	@page0
 
 @actvctrl:
+		MvDWMem	zptrself, judeActvElem
+
+		LDZ	#OBJECT::options + 1
+		NOP
+		LDA	(zptrself), Z
+		AND	#>OPT_AUTOTRACK
+		BEQ	@chkmv
+
+		JMP	@send
+
+@chkmv:
 		LDA	zvalkey
 		CMP	#KEY_C64_CDOWN
 		BEQ	@moveactv
 
-;		CMP	#KEY_C64_CUP
-;		BEQ	@moveactv
+		CMP	#KEY_C64_CRIGHT
+		BEQ	@moveactv
 
-		MvDWMem	zptrself, judeActvElem
+		CMP	#KEY_M65_TAB
+		BEQ	@moveactv
 
 		LDA	zvalkey
 		CMP	#KEY_ASC_CR
@@ -2711,9 +2849,9 @@ __JudeSendKeys:
 ;loop if not initial control not down and return not abort instead
 ;of this hack
 @page0:
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		CMP	#ERROR_ABORT
-		BNE	@def
+		BEQ	@def
 
 		LDA	jude_actvpg
 		ORA	jude_actvpg + 1
@@ -2754,7 +2892,7 @@ __JudeSendKeys:
 __JudeProcVwElemsAccel:
 ;-----------------------------------------------------------
 		LDA	#ERROR_NONE
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		LDZ	#OBJECT::state
 		NOP
@@ -2774,7 +2912,7 @@ __JudeProcVwElemsAccel:
 		JSR	_JudeDownCtrl 
 
 		LDA	#ERROR_ABORT
-		STA	karl_errorno
+		STA	_karl_errorno
 
 @exit:
 		RTS
@@ -3239,6 +3377,15 @@ __MousePickElement:
 		LDA	#STATE_PICKED
 		JSR	_KarlObjIncludeState
 
+;		LDZ	#OBJECT::options + 1
+;		NOP
+;		LDA	(zptrself), Z
+;		AND	#>OPT_AUTOTRACK
+;		BEQ	@exit
+;
+;		JSR	_JudeActivateCtrl
+
+@exit:
 		RTS
 
 
@@ -3311,7 +3458,8 @@ __MousePickBlink:
 		RTS
 
 @blink:
-		LDY	#$29
+;		LDY	#$29
+		LDY	#$14
 		STY	judePBlinkDelay
 
 		MvDWMem	zptrself, judePickElem
@@ -3377,7 +3525,7 @@ __MouseProcessPickControls:
 		MvDWMem	judeMsePElem, zptrself
 
 		LDA	#ERROR_ABORT
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -3514,16 +3662,18 @@ __MouseProcessMouse:
 		RTS
 
 @begin:
+		INC	mouseCheck
+
 		LDA	jude_mptrstate
 		CMP	#MPTR_NORMAL
 		BNE	@exit
 
+		LDA	mouseBtnLClick
+		LBNE	@proc
+
 		LDA	mouseCheck
 		CMP	#$10
 		BCS	@proc
-
-		LDA	mouseBtnLClick
-		BNE	@proc
 
 		LDA	mouseCapture
 		BEQ	@tstpick
@@ -3537,7 +3687,6 @@ __MouseProcessMouse:
 		ORA	judePickElem + 3
 
 		BNE	@tstblink
-
 		RTS
 
 @tstblink:
@@ -3556,6 +3705,14 @@ __MouseProcessMouse:
 		LDA	judePickElem + 3 
 		CMP judeDownElem + 3
 		BNE	@blink
+
+;		MvDWMem	zreg4, judeDownElem
+;
+;		LDZ	#OBJECT::options + 1
+;		NOP
+;		LDA	(zreg4), Z
+;		AND	#>OPT_DOWNPICK
+;		BNE	@blink
 
 		RTS
 
@@ -3695,7 +3852,8 @@ __MouseProcessMouse:
 @newpick:
 ;		MvDWMem	zptrself, judeMsePElem
 
-		LDA	#$29
+;		LDA	#$29
+		LDA	#$14
 		STA	judePBlinkDelay
 		LDA	#$01
 		STA	judePBlinkState
@@ -3712,11 +3870,11 @@ __MouseProcessMouse:
 ;-----------------------------------------------------------
 __MouseInputMouse:
 ;-----------------------------------------------------------
-		LDA	mouseCheck
-		BEQ	@begin
-		
-		INC	mouseCheck
-		
+;		LDA	mouseCheck
+;		BEQ	@begin
+;		
+;		INC	mouseCheck
+
 @begin:
 		LDY	#%00000000		    ;Set ports A and B to input
 		STY	CIA1_DDRB
@@ -3784,11 +3942,11 @@ __MouseInputMouse:
 		TYA
 		JSR	__MouseMoveSprX
 		
-		LDA	mouseCheck
-		BNE	@SkipX
+;		LDA	mouseCheck
+;		BNE	@SkipX
 
-		LDA	#$01
-		STA	mouseCheck
+;		LDA	#$01
+;		STA	mouseCheck
 
 ; Calculate the Y movement vector
 
@@ -3849,11 +4007,11 @@ __MouseInputMouse:
 		TYA
 		JSR	__MouseMoveSprY
 
-		LDA	mouseCheck
-		BNE	@SkipY
-		
-		LDA	#$01
-		STA	mouseCheck
+;		LDA	mouseCheck
+;		BNE	@SkipY
+;		
+;		LDA	#$01
+;		STA	mouseCheck
 
 ; Done
 
@@ -3987,6 +4145,7 @@ _MoveCheck:
 ;-----------------------------------------------------------
 __MouseButtonCheck:
 ;-----------------------------------------------------------
+
 		LDA	mouseButtons			;mouseButtons still the same as last
 		CMP	mouseButtonsOld		;time?
 		BEQ	@done			;Yes - don't do anything here
@@ -3995,14 +4154,16 @@ __MouseButtonCheck:
 ;		LDA	#$01
 ;		STA	MouseUsed
 ;		PLA
-		
-;		AND	#MOUSE_LBTN		;No - Is left button down?
-		BIT	#MOUSE_LBTN		;No - Is left button down?
+;		INC	$D020
+
+
+		AND	#MOUSE_LBTN		;No - Is left button down?
+;		BIT	#MOUSE_LBTN		;No - Is left button down?
 		BNE	@testRight		;Yes - test right
 		
 		LDA	mouseButtonsOld		;No, but was it last time?
-;		AND	#MOUSE_LBTN
-		BIT	#MOUSE_LBTN
+		AND	#MOUSE_LBTN
+;		BIT	#MOUSE_LBTN
 		BEQ	@testRight		;No - test right
 		
 		LDA	#$01			;Yes - flag have left click
@@ -4277,7 +4438,7 @@ __JudeDefCorePrepare:
 		STA	$01
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -4310,7 +4471,7 @@ __JudeDefCoreInit:
 		STA	VIC_IRQMASK
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		CLI
 
@@ -4320,7 +4481,7 @@ __JudeDefCoreInit:
 __JudeDefCoreChange:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -4328,7 +4489,7 @@ __JudeDefCoreChange:
 __JudeDefCoreRelease:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -4397,7 +4558,7 @@ dma_vw_dbnk:
 	.word	$0000				;Modulo LSB / Mode Modulo MSB / Mode
 
 themecnt:
-		.byte	$02
+		.byte	$03
 
 
 ;	.define	CLR_BACK		$00FD		;Background on C64
@@ -4415,11 +4576,29 @@ themecnt:
 
 theme0:
 		.asciiz		"CORPORATE       "
-		.byte		$00, $06, $04, $01, $01, $06, $0E, $0C
-		.byte		$0F, $03, $01
+		.byte		$00, $06, $04, $01, $01, $06, $0E, $0B
+		.byte		$0F, $03, $0C, $0E, $0D, $07, $0A
+
+		.asciiz		"DARK            "
+		.byte		$00, $00, $04, $0F, $01, $00, $0F, $0B
+		.byte		$0F, $03, $0C, $0E, $0D, $07, $0A
+
 		.asciiz		"FAMILIAR        "
 		.byte		$00, $0E, $06, $01, $01, $0E, $04, $0C
-		.byte		$0F, $03, $01
+		.byte		$0F, $03, $0F, $06, $0D, $07, $0A
+
+		.asciiz		"ASTRO           "
+		.byte		$00, $00, $0A, $02, $01, $00, $0A, $0B
+		.byte		$0F, $0A, $0C, $0F, $0D, $07, $0A
+
+		.asciiz		"GREEN           "
+		.byte		$00, $05, $0D, $01, $01, $05, $0D, $0B
+		.byte		$0F, $03, $0C, $0D, $0D, $07, $0A
+
+		.asciiz		"CORPORATE NUEVO "
+		.byte		$00, $06, $04, $01, $01, $06, $04, $0B
+		.byte		$0F, $03, $0C, $0E, $0D, $07, $0A
+
 
 pointer0:
 		.byte		$33, $33, $33, $33, $33, $00, $00, $00
@@ -4526,7 +4705,7 @@ jude_coloury0:
 		.endrepeat
 
 jude_theme:
-		.res	11, 0
+		.res	15, 0
 
 
 ;-----------------------------------------------------------

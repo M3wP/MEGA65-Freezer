@@ -16,16 +16,6 @@ typedef	struct	BROWSEBAR {
 		judeBar_t		_bar;
 	} judeBrowseBar_t;
 
-typedef	struct	LISTPANEL {
-		judePanel_t		_panel;
-
-		karlFarPtr_t	lines_p;
-		byte			linescnt;
-		byte			linewidth;
-		byte			currline;
-		byte			linesoff;
-	} judeListPanel_t;
-
 typedef	struct	BUTTONCTRL {
 		judeControl_t	_control;
 	} judeButtonCtrl_t;

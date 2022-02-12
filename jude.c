@@ -7,6 +7,21 @@ void	JudeViewInit(karlFarPtr_t *view) {
 	_JudeViewInit();
 }
 
+void	JudeEraseLine(byte w, byte x, byte y, word colour) {
+//	IN	.A,.X		colour
+//	IN	zregAb3		Max width
+//	IN	zregBb1		x pos
+//	IN	zregBb2		y pos
+
+	zregAwl = colour;
+	zregBb1 = x;
+	zregBb2 = y;
+	zregAb3 = w;
+
+	_JudeEraseLine();
+}
+
+
 void 	JudeDrawText(word colour, byte indent, byte mwidth, byte docont) {
 //	IN	zregAwl		Colour
 //	IN	zregAb2		Indent
@@ -22,7 +37,7 @@ void 	JudeDrawText(word colour, byte indent, byte mwidth, byte docont) {
 }
 
 void	JudeDrawTextDirect(word colour, byte indent, byte mwidth, byte docont,
-			byte x, byte y, byte offs, void *text) {
+			byte x, byte y, byte offs, unsigned long text) {
 	zregAwl = colour;
 	zregAb2 = indent;
 	zregAb3 = mwidth;
@@ -31,8 +46,7 @@ void	JudeDrawTextDirect(word colour, byte indent, byte mwidth, byte docont,
 	zregBb2 = y;
 	zregCb0 = offs;
 
-	zregDwl = (unsigned short)(text);
-	zregDwh = 0x0000;
+	zregD = text;
 
 	_JudeDrawTextDirect();
 }

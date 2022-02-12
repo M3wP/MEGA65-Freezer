@@ -48,7 +48,7 @@
 	.import		jude_screeny0
 	.import		judeDownElem
 
-	.import		karl_errorno
+	.import		_karl_errorno
 	.import		_KarlObjExcludeState
 	.import		_KarlObjIncludeState
 ;===========================================================
@@ -67,7 +67,7 @@ _JudeDefCtlPrepare:
 		JSR	_KarlObjIncludeState
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -76,7 +76,7 @@ _JudeDefCtlPrepare:
 _JudeDefCtlInit:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -88,31 +88,11 @@ _JudeDefCtlChange:
 		NOP
 		LDA	(zptrself), Z
 		AND	#STATE_CHANGED
-		LBEQ	@exit
+		BEQ	@exit
 
 		LDA	#$00
 		STA	zregAb0
 
-		NOP
-		LDA	(zptrself), Z
-		AND	#STATE_ACTIVE
-		BEQ	@chkdown
-
-		LDZ	#OBJECT::options + 1
-		NOP
-		LDA	(zptrself), Z
-		AND	#>OPT_AUTODOWN
-		BEQ	@chkdown
-
-		JSR	_JudeDownCtrl
-
-		LDA	#$01
-		STA	zregAb0
-
-		BRA	@chnged
-
-@chkdown:
-		LDZ	#OBJECT::state
 		NOP
 		LDA	(zptrself), Z
 ;		LDZ	#OBJECT::oldstate + 1
@@ -120,7 +100,7 @@ _JudeDefCtlChange:
 ;		STA	(zptrself), Z
 ;		LDZ	#OBJECT::state
 		AND	#STATE_DOWN
-		BEQ	@chnged
+		BEQ	@dirty
 
 		LDA	#$01
 		STA	zregAb0
@@ -129,7 +109,7 @@ _JudeDefCtlChange:
 		NOP
 		LDA	(zptrself), Z
 		AND	#OPT_DOWNCAPTURE
-		BNE	@chnged
+		BNE	@dirty
 
 		LDZ	#OBJECT::state
 		NOP
@@ -139,7 +119,7 @@ _JudeDefCtlChange:
 
 		MvDWZ	judeDownElem
 
-@chnged:
+@dirty:
 		LDA	#STATE_CHANGED
 		JSR	_KarlObjExcludeState
 
@@ -193,7 +173,7 @@ _JudeDefCtlChange:
 
 @exit:
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -202,7 +182,7 @@ _JudeDefCtlChange:
 _JudeDefCtlRelease:
 ;-----------------------------------------------------------
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -411,15 +391,15 @@ _JudeDefCtlPresent:
 		JSR	_KarlObjExcludeState
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
 ;-----------------------------------------------------------
 _JudeDefCtlKeypress:
 ;-----------------------------------------------------------
-		LDA	#ERROR_ABORT
-		STA	karl_errorno
+		LDA	#ERROR_NONE
+		STA	_karl_errorno
 
 		RTS
 
@@ -814,7 +794,7 @@ _JudeDefRGpChange:
 
 @exit:
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -960,6 +940,6 @@ _JudeDefRBtChange:
 
 @exit:
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS

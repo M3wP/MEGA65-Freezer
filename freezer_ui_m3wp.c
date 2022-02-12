@@ -9,7 +9,7 @@
 #include "freezer_ui_gen.h"
 
 #include "freezer_ui.h"
-
+#include "freezer_ui_m3wp.h"
 
 
 //==============================================================================
@@ -244,21 +244,393 @@ unsigned char menubar_colours[] = {
 const unsigned long menuoffs = 0x0FF80000;
 
 
+const char str_lbx_prior[] = "[UP]";
+const char str_lbx_next[]  = "[DOWN]";
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeLBxPresent(void) {
+	karlDWFarPtr_t data;
+	freezeListBox_t *self;
+	unsigned char lines = 0;
+	unsigned short colour = CLR_TEXT;
+	unsigned short clrtmp;
+	unsigned long lineptr;
+	unsigned char y, x, w, f, f2, n, pgh, pgl, pgm, cl;
+
+	data.data = zptrself;
+	self = (freezeListBox_t*)(data.ptr.loword);
+
+	KarlObjExcludeState(STATE_DIRTY);
+
+	f = (self->_control._element._object.state & STATE_ENABLED);
+	if 	(!f)
+		colour = CLR_SHADOW;
+
+	y = self->_control._element.posy;
+	x = self->_control._element.posx;
+	w = self->_control._element.width;
+
+	cl = (self->currline == 0xFF) ? 0 : self->currline;
+
+	data.ptr = self->lines_p;
+
+	pgl = (self->linesoff > 0) ? 1 : 0;
+	pgm = (((self->linescnt - self->linesoff) + pgl) > self->_control._element.height) ? 1 : 0;
+	pgh = self->_control._element.height - (pgl + pgm);
+
+	lines = pgh;
+
+	if  (lines > self->linescnt)
+		lines = self->linescnt; 
+	
+	if  ((lines + self->linesoff + pgl) > self->linescnt)
+		lines = self->linescnt - self->linesoff;
+
+
+		f2 = (self->_control._element._object.state & STATE_PICKED);
+
+		self->_control._element._object.tag = 1;
+
+		JudeEraseBkg(colour);
+
+//		POKE(0xD020U, 0);
+
+		if 	(lines) {
+//			if  (f2)
+//				POKE(0xD020U, 7);
+//			else
+//				POKE(0xD020U, 5);
+
+			lineptr = data.data + (self->linewidth * self->linesoff);
+
+			n = 0;
+			if 	(self->linesoff) {
+				data.ptr.loword = (word)(str_lbx_prior);
+				data.ptr.hiword = 0;
+
+				if  (cl == n)
+					clrtmp = (f) ? 
+							(self->_control._element._object.state & STATE_ACTIVE) ? CLR_PAPER  : 
+							CLR_SHADOW : colour;
+				else
+					clrtmp = colour;
+
+				if  ((self->hotline == n) && f && f2)
+					clrtmp = CLR_FOCUS;
+
+				JudeEraseLine(w, x, y, clrtmp);
+				JudeDrawTextDirect(clrtmp, 0, w, 0x00, x, y, (w - 4) / 2, data.data);
+				y++;
+				n++;
+			}
+
+			while (lines) {
+				if  (self->selline == (n + self->linesoff - pgl))
+					clrtmp = (f) ? CLR_FOCUS : CLR_PAPER;
+				else if  (cl == n)
+					clrtmp = (f) ? 
+							(self->_control._element._object.state & STATE_ACTIVE) ? CLR_PAPER  : 
+							CLR_SHADOW : colour;
+				else
+					clrtmp = colour;
+
+				if  ((self->hotline == n) && f && f2)
+					clrtmp = (clrtmp == CLR_FOCUS) ? CLR_PAPER : CLR_FOCUS;
+
+				JudeEraseLine(w, x, y, clrtmp);
+				JudeDrawTextDirect(clrtmp, 0, w, 0x00, x, y, 0, lineptr);
+				y++;
+				n++;
+				
+				lineptr+= self->linewidth /*64*/;	
+				lines--;
+			}
+
+			if 	((self->linescnt - self->linesoff) > pgh) {
+				if  (cl == n)
+					clrtmp = (f) ? 
+							(self->_control._element._object.state & STATE_ACTIVE) ? CLR_PAPER  : 
+							CLR_SHADOW : colour;
+				else
+					clrtmp = colour;
+
+				if  ((self->hotline == n) && f && f2)
+					clrtmp = CLR_FOCUS;
+
+				data.ptr.loword = (word)(str_lbx_next);
+				data.ptr.hiword = 0;
+
+				JudeEraseLine(w, x, y, clrtmp);
+				JudeDrawTextDirect(clrtmp, 0, w, 0x00, x, y, (w - 6) / 2, data.data);
+				y++;
+				n++;
+				lines--;
+			}
+		}
+	//}
+}
+
+
+extern void __fastcall__	FreezeLBxChange(void) {
+	karlDWFarPtr_t data;
+	freezeListBox_t *self;
+	unsigned char dwn, flg = 0;
+	unsigned char h;
+	void (*sel)(void);
+
+	data.data = zptrself;
+	self = (freezeListBox_t*)(data.ptr.loword);
+
+	flg = (self->_control._element._object.state &
+			(STATE_ENABLED | STATE_VISIBLE));
+
+	dwn = (flg && (self->_control._element._object.state & STATE_DOWN));
+
+	if  (flg
+	&&   (mouseXCol >= self->_control._element.posx)
+	&&   (mouseXCol < (self->_control._element.posx + self->_control._element.width)) 
+	&&	 (mouseYRow >= self->_control._element.posy)
+	&&   (mouseYRow < (self->_control._element.posy + self->_control._element.height))) {
+//		flg = 1;
+		if  (self->_control._element._object.state & STATE_PICKED) {
+			self->hotline = mouseYRow - self->_control._element.posy;
+			if  (self->hotline >= self->linescnt) 
+				self->hotline = self->linescnt - 1;
+			if  (self->hotline > (self->linescnt - self->linesoff))
+				self->hotline = self->linescnt - self->linesoff;
+
+			self->_control._element._object.tag = 0;
+
+			KarlObjIncludeState(STATE_DIRTY);
+		}
+
+		if  (self->_control._element._object.state & STATE_DOWN) {
+			h = (self->_control._element.height - 2);
+
+			if  ((self->linesoff > 0) && (self->hotline == 0)) {
+				if  ((self->linesoff - h) < 0)
+					self->linesoff = 0;
+				else 
+					self->linesoff-= h;
+				flg = 0;
+			} else if ((self->hotline == (self->_control._element.height - 1))
+			&& ((self->linescnt - self->linesoff) > h)) {
+				if ((self->linesoff + h) > self->linescnt)
+					self->linesoff = self->linescnt - h;
+				else
+					self->linesoff+= h;
+
+				flg = 0;
+			}
+		}
+
+		if (!flg) {
+			self->hotline = 0x00;
+			self->currline = 0x00;
+		} else if (dwn) {
+			self->currline = self->hotline;
+		}
+	};
+	
+	JudeDefCtlChange();
+
+	if (dwn && flg && (self->currline != 0xFF)) {
+		self->selline = self->linesoff + self->currline - ((self->linesoff > 0) ? 1 : 0);
+		sel = (void(*)(void))self->select;
+		if (sel)
+			sel();
+	}
+
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void	__fastcall__ FreezeLBxPressed(void) {
+	char key = _zkarljr[0x64];
+	unsigned char mod = _zkarljr[0x65];
+	unsigned char flg = 0;
+	unsigned char h, l;
+	void (*sel)(void);
+
+	karlDWFarPtr_t data;
+	freezeListBox_t *self;
+
+	data.data = zptrself;
+	self = (freezeListBox_t*)(data.ptr.loword);
+
+	flg = (self->_control._element._object.state &
+			(STATE_ACTIVE| STATE_ENABLED | STATE_VISIBLE));
+
+// 	if  (flg
+// 	&&   (mouseXCol >= self->_control._element.posx)
+// 	&&   (mouseXCol < (self->_control._element.posx + self->_control._element.width)) 
+// 	&&	 (mouseYRow >= self->_control._element.posy)
+// 	&&   (mouseYRow < (self->_control._element.posy + self->_control._element.height))) {
+// 		self->currline = mouseYRow - self->_control._element.posy;
+// 		if  (self->currline > self->linescnt) 
+// 			self->currline = self->linescnt;
+// 		self->_control._element._object.tag = 0;
+// 		KarlObjIncludeState(STATE_DIRTY);
+// //		JudeUnDownCtrl();
+// 		return;
+// 	}
+
+	flg = 0;
+
+	if  (self->_control._element._object.state & (STATE_ACTIVE)) {
+		l = (self->linescnt - self->linesoff) - ((self->linesoff > 0) ? 0 : 1);
+		if  (l > (self->_control._element.height - 1))
+			l = (self->_control._element.height - 1);
+
+		switch (key) {
+			case KEY_C64_CDOWN:
+			case KEY_C64_CRIGHT:
+			case KEY_M65_TAB:
+				if  ((key == KEY_M65_TAB)
+				||	 ((mod & KEY_MOD_SHIFT) && (self->currline == 0)) 
+				||   ((!(mod & KEY_MOD_SHIFT)) && (self->currline == l))) {
+					_JudeMoveActiveControl();
+				}
+				else {
+					if (!(mod & KEY_MOD_SHIFT)) 
+						self->currline++;
+					else
+						self->currline--;
+
+					self->hotline = self->currline;
+
+					self->_control._element._object.tag = 0;
+
+					KarlObjIncludeState(STATE_DIRTY);
+//					JudeUnDownCtrl();
+				}
+				break;
+			case KEY_ASC_CR:
+				h = (self->_control._element.height - 2);
+
+				if  ((self->linesoff > 0) && (self->currline == 0)) {
+					if  ((self->linesoff - h) < 0)
+						self->linesoff = 0;
+					else 
+						self->linesoff-= h;
+					flg = 1;
+				} else if ((self->currline == (self->_control._element.height - 1))
+				&& ((self->linescnt - self->linesoff) > h)) {
+					if ((self->linesoff + h) > self->linescnt)
+						self->linesoff = self->linescnt - h;
+					else
+						self->linesoff+= h;
+
+					flg = 1;
+				}
+
+				self->hotline = self->currline;
+
+				self->_control._element._object.tag = 0;
+				KarlObjIncludeState(STATE_DIRTY);
+
+				if (flg) {
+					self->currline = 0x00;
+				} else {
+					self->selline = self->linesoff + self->currline - ((self->linesoff > 0) ? 1 : 0);
+
+					sel = (void(*)(void))self->select;
+					if (sel)
+ 						sel();
+				
+					JudeUnDownCtrl();
+				}
+
+				break;	
+		}
+	
+		karl_errorno = ERROR_ABORT;
+	} else
+		JudeDefCtlKeypress();
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void 	__fastcall__	FreezeImgLstSelect(void) {
+	unsigned long faddr;
+	karlDWFarPtr_t data;
+//	karlFarPtr_t obj;
+//	unsigned char i;
+	unsigned char l;
+
+	data.ptr = lbx_freeze_control3A.lines_p;
+
+	l = (lbx_freeze_control3A.linesoff > 0) ? lbx_freeze_control3A.currline - 1 : 
+			lbx_freeze_control3A.currline;
+
+	faddr = data.data + 
+			(l + lbx_freeze_control3A.linesoff) * lbx_freeze_control3A.linewidth;
+
+
+	lcopy(faddr, (unsigned long)disk_name_return, 32);
+
+	disk_filecnt = 0;
+	draw_directory_contents();
+
+	data.ptr.loword = (unsigned short)disk_name_return;
+	data.ptr.hiword = 0;
+	JudeDrawTextDirect(CLR_PAPER, 0, 32, 0, 0, 0, 0, data.data);
+
+
+	lbx_freeze_control3C.linescnt = disk_filecnt;
+//	lbx_freeze_control3A.linewidth = 0x40;
+
+	lbx_freeze_control3C.linesoff = 0x00;
+	lbx_freeze_control3C.currline = 0x00;
+
+	lbx_freeze_control3C._control._element._object.state|= STATE_ENABLED; 
+	lbx_freeze_control3C._control._element._object.tag = 0;
+
+	data.ptr.loword = (word)&lbx_freeze_control3C;
+  	data.ptr.hiword = 0x0000;
+	zptrself = data.data;
+	KarlObjIncludeState(STATE_DIRTY); 
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void	__fastcall__ 	FreezePage0Keypress(void) {
+	_zkarljr[0x65] = KEY_MOD_SYS;
+
+
+	_JudeProcessAccelerators();
+}
+
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void	__fastcall__	FreezeMenuBarPrs(void) {
 	unsigned char i, x;
+	karlDWFarPtr_t data;
+	unsigned short clr;
 
 	JudeDefPnlPresent();
 
+
+
 	for (i = 0; i < 4; i++) {
-		for (x = 0; x < 5; x++) {
+		clr = CLR_INFORM + i;
+		x = JudeLogClrToSys(clr);
+		menubar_colours[i] = x;
+
+		for (x = 0; x < 4; x++) {
 			lpoke(menuoffs + (i * 8) + (x * 2) + 1, menubar_colours[i]);
 			lpoke((menuoffs + 128) + (i * 8) + (x * 2) + 1, menubar_colours[3 - i]);
 		}
 	}
 
-	JudeDrawTextDirect(CLR_PAPER, 0, 0x2C, 0x00, 0, 0, 0x13, str_freeze_bar0);
+	data.ptr.loword = (word)(str_freeze_bar0);
+	data.ptr.hiword = 0;
+
+	JudeDrawTextDirect(CLR_PAPER, 0, 0x2C, 0x00, 0, 0, 0x13, data.data);
 }
 
 
@@ -320,7 +692,7 @@ void __fastcall__ FreezePgeInit(void) {
 }
 
 
-const unsigned long thumboffs = 0x00010000 + 3 * 160 + 12;
+const unsigned long thumboffs = 0x00010000 + 4 * 160 + 24;
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -626,12 +998,47 @@ void __fastcall__	FreezeDiskNum0Chg(void) {
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void __fastcall__	FreezeDiskImg0Chg(void) {
+	karlFarPtr_t obj;
+  	dword data;
 	word	flg	= (ctl_freeze_control21._element._object.state & STATE_DOWN);
 
 	JudeDefCtlChange();
 
 	if (flg) {
+		mega65_dos_chdirroot();
+		dir_depth = 0;
+
 		scan_directory(0);
+
+//		lbx_freeze_control3A.lines_p.loword = 0x0000;
+//		lbx_freeze_control3A.lines_p.hiword = 0x0004;
+
+		lbx_freeze_control3A.linescnt = file_count;
+		lbx_freeze_control3C.linescnt = 0;
+//		lbx_freeze_control3A.linewidth = 0x40;
+
+		lbx_freeze_control3A.linesoff = 0x00;
+		lbx_freeze_control3A.currline = 0x00;
+		lbx_freeze_control3A.hotline = 0x00;
+		lbx_freeze_control3A.selline = 0xFF;
+
+		lbx_freeze_control3C.linesoff = 0x00;
+		lbx_freeze_control3C.currline = 0x00;
+		lbx_freeze_control3C.hotline = 0x00;
+		lbx_freeze_control3C.selline = 0xFF;
+
+		lbx_freeze_control3A._control._element._object.state|= STATE_ENABLED; 
+		lbx_freeze_control3A._control._element._object.tag = 0;
+
+		lbx_freeze_control3C._control._element._object.state = STATE_VISIBLE; 
+		lbx_freeze_control3C._control._element._object.tag = 0;
+
+	 	obj.loword = (word)&pge_freeze_page2;
+  		obj.hiword = 0x0000;
+
+  		data = *((dword *)&obj);
+  		zptrself = data;
+ 		JudeActivatePage(); 
 	}
 }
 
@@ -658,6 +1065,8 @@ void __fastcall__	FreezeDiskImg1Chg(void) {
 	JudeDefCtlChange();
 
 	if (flg) {
+		mega65_dos_chdirroot();
+		dir_depth = 0;
 		scan_directory(1);
 	}
 }

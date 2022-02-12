@@ -36,7 +36,6 @@ uint32_t find_thumbnail_offset(void)
     region_length = freeze_region_list[i].region_length & REGION_LENGTH_MASK;
 
 
-//***FIXME Is this address a typo?
     if (freeze_region_list[i].address_base == 0x0001000L) {
       // Found it
       return freeze_slot_offset;

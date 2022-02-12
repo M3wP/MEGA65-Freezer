@@ -292,30 +292,19 @@ extern byte _zkarljr[SIZ_ZP_KARLJR];
 
 
 #define KEY_C64_STOP	0x03
-//#define KEY_C64_SHSTOP	0x83
-#define	KEY_M65_SHSTOP	0xA3
-
 #define KEY_C64_HOME	0x13
-#define KEY_C64_CLEAR	0x93
-
-//;Does not function M65
-//#define KEY_C64_POUND	0x5C		
-//#define KEY_C64_ARRUP	0x5E		
-
+#define KEY_C64_POUND	0xA3		
+#define KEY_C64_ARRUP	0xAF		
 #define KEY_C64_ARRLEFT	0x5F
 
 #define	KEY_C64_CRIGHT	0x1D
 #define	KEY_C64_CDOWN	0x11
-//#define KEY_C64_CUP		0x91
-//#define KEY_C64_CLEFT	0x9D
 
 #define	KEY_C64_DEL		0x14
-#define KEY_C64_INS		0x94
 
-//Not mapped M65
-//#define KEY_C64_SHRET	0x8D		
+#define KEY_M65_ESC		0x1B
+#define KEY_M65_TAB		0x09
 
-//#define KEY_C64_INVALID	0xFF
 #define KEY_M65_NONE	0x00
 
 #define	KEY_M65_F1		0xF1
@@ -368,7 +357,7 @@ extern byte _zkarljr[SIZ_ZP_KARLJR];
 #define OPT_TEXTACCEL2X	0x40
 #define OPT_TEXTCONTMRK 0x80
 #define OPT_NOAUTOCHKOF 0x0100
-#define OPT_AUTODOWN	0x0200
+#define OPT_AUTOTRACK	0x0200
 
 #define	ERROR_ABORT		0xFF
 #define	ERROR_NONE		0x00
@@ -388,6 +377,11 @@ typedef	struct	FARPTR {
 		word	loword;
 		word	hiword;
 	} karlFarPtr_t;
+
+typedef union	DWFARPTR_U {
+		dword	data;
+		karlFarPtr_t ptr;
+	} karlDWFarPtr_t;
 
 typedef unsigned short	EVENTPTR;
 
@@ -450,5 +444,7 @@ extern void	__fastcall__	KarlDefModRelease(void);
 extern void	__fastcall__	_KarlModAttach(void);
 
 extern void	KarlModAttach(karlFarPtr_t *module);
+
+extern	unsigned char karl_errorno;
 
 #endif

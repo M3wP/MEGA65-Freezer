@@ -39,7 +39,7 @@
 	.export		karl_changed
 	.export		karl_lock
 	.export		__KarlCallObjLstMethod
-	.export		karl_errorno
+	.export		_karl_errorno
 
 
 ;-----------------------------------------------------------
@@ -57,7 +57,7 @@ _KarlInit:
 		STA	zvaltemp0 + 3
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		RTS
 
@@ -122,7 +122,7 @@ _KarlClearZ:
 ;-----------------------------------------------------------
 _KarlGetLastError:
 ;-----------------------------------------------------------
-		LDA	karl_errorno
+		LDA	_karl_errorno
 
 		RTS
 
@@ -151,6 +151,7 @@ _KarlIOFast:
 		STA	$D02F
 		LDA	#$53
 		STA	$D02F
+
 ;	Switch to fast mode
 ; 	1. C65 fast-mode enable
 		LDA	$D031
@@ -182,7 +183,7 @@ __KarlModAttach:
 		MvDWZ	zreg0
 
 		LDA	#ERROR_MODULE
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		LDZ	#OBJECT::prepare
 		NOP
@@ -198,7 +199,7 @@ __KarlModAttach:
 		LDZ	#$00
 		JSR	_KarlProxy
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		BNE	@exit
 
 	.if	DEBUG_RASTERTIME
@@ -209,7 +210,7 @@ __KarlModAttach:
 		MvDWMem	zptrself, zptrowner
 
 		LDA	#ERROR_MODULE
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		LDZ	#OBJECT::initialise
 		NOP
@@ -225,7 +226,7 @@ __KarlModAttach:
 		LDZ	#$00
 		JSR	_KarlProxy
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		BNE	@exit
 
 		MvDWMem	zreg0, zptrowner
@@ -418,7 +419,7 @@ _KarlDefModPrepare:
 
 		JSR	__KarlCallObjLstMethod
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		BEQ	@exit
 
 		LDA	#$01
@@ -532,7 +533,7 @@ __KarlCallObjLstMLoad:
 __KarlCallObjLstMProc:
 ;-----------------------------------------------------------
 		LDA	#ERROR_NONE
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		MvDWMem	zptrself, zreg0
 
@@ -549,12 +550,12 @@ __KarlCallObjLstMProc:
 
 		JSR	_KarlProxy
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		CMP	#ERROR_ABORT
 		BNE	@exit
 
 		LDA	#ERROR_NONE
-		STA	karl_errorno
+		STA	_karl_errorno
 
 @exit:
 		RTS
@@ -888,11 +889,11 @@ __KarlProcObjLst:
 		BEQ	@next2
 
 		LDA	#$00
-		STA	karl_errorno
+		STA	_karl_errorno
 
 		JSR	_KarlProxy
 
-		LDA	karl_errorno
+		LDA	_karl_errorno
 		CMP	#ERROR_ABORT
 		BEQ	@finish
 
@@ -926,7 +927,7 @@ karl_scrASCIIXlat:
 	.byte	KEY_ASC_BSLASH, KEY_ASC_CARET, KEY_ASC_USCORE, KEY_ASC_BQUOTE
 	.byte	KEY_ASC_OCRLYB, KEY_ASC_PIPE, KEY_ASC_CCRLYB, KEY_ASC_TILDE, $00
 karl_scrASCIISub:
-	.byte	$4D, $71, $64, $4A ,$55, $5D, $49, $45, $00
+	.byte	$4D, $71, $64, $4A ,$55, $5D, $49, $1F, $00
 
 
 	.data
@@ -941,7 +942,7 @@ karl_temp2:
 karl_proxyptr:
 		.word	$0000
 
-karl_errorno:
+_karl_errorno:
 		.byte	$00
 
 karl_lock:

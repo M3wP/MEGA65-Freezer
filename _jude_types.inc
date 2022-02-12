@@ -72,6 +72,10 @@
 	.define CLR_PAPER		$0005
 	.define CLR_MONEY		$0006
 	.define	CLR_ITEM		$0007
+	.define CLR_INFORM		$0008
+	.define CLR_ACCEPT		$0009
+	.define CLR_APPLY		$000A
+	.define CLR_ABORT		$000B
 
 	.define CLR_INTN_THME	$0000		;Theme colour
 	.define CLR_SYSS_TEXT	$1000		;Specific system text colour
@@ -84,7 +88,7 @@
 
 	.struct	THEME
 		_name		.tag	NAME
-		_data		.res	11
+		_data		.res	15
 	.endstruct
 
 
@@ -196,16 +200,6 @@
 
 		panels_p	.tag	FARPTR
 		panelscnt	.byte
-	.endstruct
-
-
-	.struct	LISTPANEL
-		_panel		.tag	PANEL
-		lines_p		.tag	FARPTR
-		linescnt	.byte
-		linewidth	.byte
-		currline	.byte
-		linesoff	.byte
 	.endstruct
 
 

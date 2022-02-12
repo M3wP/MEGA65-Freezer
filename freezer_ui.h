@@ -5,6 +5,7 @@
 #include	"jude.h"
 #include	"jude_widgets.h"
 #include	"ascii.h"
+#include 	"freezer_ui_m3wp.h"
 
 extern const char str_freeze_page0[];
 extern const char str_freeze_page1[];
@@ -64,6 +65,16 @@ extern const char str_freeze_ctrl2D[];
 extern const char str_freeze_ctrl2E[];
 extern const char str_freeze_ctrl2F[];
 extern const char str_freeze_ctrl30[];
+extern const char	str_freeze_ctrl31[];
+extern const char  str_freeze_ctrl32[];
+
+extern const char	str_freeze_ctrl34[];
+extern const char	str_freeze_ctrl35[];
+extern const char	str_freeze_ctrl36[];
+extern const char	str_freeze_ctrl37[];
+extern const char 	str_freeze_control3B[];
+extern char	str_freeze_ctrl38[];
+extern const char	str_freeze_ctrl39[];
 
 extern karlModule_t mod_freeze_app;
 extern judeUInterface_t uni_freeze_ui;
@@ -99,6 +110,7 @@ extern karlFarPtr_t pgs_freeze_view[];
 extern judePanel_t	pnl_freeze_panel0;
 extern judePanel_t	pnl_freeze_panel1;
 extern judePanel_t pnl_freeze_panel2;
+extern judePanel_t pnl_freeze_panel9;
 extern judePanel_t pnl_freeze_panel3;
 extern judePanel_t pnl_freeze_panel4;
 
@@ -146,12 +158,16 @@ extern judeControl_t lbl_freeze_control18;
 extern judeControl_t txt_freeze_control19;
 extern judeControl_t lbl_freeze_control1A;
 extern judeControl_t txt_freeze_control1B;
+
+extern karlFarPtr_t cts_freeze_panel2[];
+
+
 extern judeControl_t ctl_freeze_control1C;
 extern judeControl_t ctl_freeze_control1D;
 extern judeControl_t ctl_freeze_control1E;
 
 
-extern karlFarPtr_t cts_freeze_panel2[];
+extern karlFarPtr_t cts_freeze_panel9[];
 
 
 extern judeControl_t txt_freeze_control1F;
@@ -184,5 +200,40 @@ extern judeControl_t btn_freeze_control2E;
 extern judeControl_t btn_freeze_control2F;
 extern judeControl_t btn_freeze_control30;
 
+extern judePage_t pge_freeze_page2;
+
+extern karlFarPtr_t pns_freeze_page2[];
+
+extern judePanel_t pnl_freeze_panel6;
+extern judePanel_t pnl_freeze_panel7;
+extern judePanel_t	pnl_freeze_panel8;
+
+extern karlFarPtr_t cts_freeze_panel6[];
+extern karlFarPtr_t cts_freeze_panel7[];
+extern karlFarPtr_t cts_freeze_panel8[];
+
+extern judeControl_t txt_freeze_control31;
+extern judeControl_t txt_freeze_control32;
+
+extern judeLabelCtrl_t lbl_freeze_control33;
+
+extern judeRadioGrpCtrl_t rgp_freeze_control34;
+extern karlFarPtr_t cts_freeze_rgrp5[];
+
+extern judeRadioBtnCtrl_t rbt_freeze_control35;
+extern judeRadioBtnCtrl_t rbt_freeze_control36;
+
+extern judeLabelCtrl_t lbl_freeze_control37;
+extern judeControl_t btn_freeze_control3B;
+extern judeControl_t txt_freeze_control38;
+
+extern judeLabelCtrl_t lbl_freeze_control39;
+extern freezeListBox_t lbx_freeze_control3A;
+
+extern freezeListBox_t lbx_freeze_control3C;
+
+extern judeControl_t txt_freeze_control3D;
+extern judeControl_t btn_freeze_control3E;
+extern judeControl_t btn_freeze_control3F;
 
 #endif

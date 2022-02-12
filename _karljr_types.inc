@@ -323,38 +323,21 @@
 
 
 	.define KEY_C64_STOP	$03
-;	.define KEY_C64_SHSTOP	$83
-	.define	KEY_M65_SHSTOP	$A3
-
 	.define KEY_C64_HOME	$13
-	.define KEY_C64_CLEAR	$93
-
-;	.define KEY_C64_POUND	$5C		;Does not function M65
-;	.define KEY_C64_ARRUP	$5E		;Does not function M65
-
+	.define KEY_C64_POUND	$A3		
+	.define KEY_C64_ARRUP	$AF		
 	.define KEY_C64_ARRLEFT	$5F
 
 	.define	KEY_C64_CRIGHT	$1D
 	.define	KEY_C64_CDOWN	$11
-;	.define KEY_C64_CUP		$91
-;	.define KEY_C64_CLEFT	$9D
 
 	.define	KEY_C64_DEL		$14
-	.define KEY_C64_INS		$94
 
-;	.define KEY_C64_SHRET	$8D		;Not mapped M65
+	.define KEY_M65_ESC		$1B
+	.define KEY_M65_TAB		$09
 
-;	.define KEY_C64_INVALID	$FF
 	.define KEY_M65_NONE	$00
 
-;	.define	KEY_C64_F1 	$85
-;	.define	KEY_C64_F3 	$86
-;	.define	KEY_C64_F5 	$87
-;	.define	KEY_C64_F7 	$88
-;	.define KEY_C64_F2	$89
-;	.define KEY_C64_F4	$8A
-;	.define KEY_C64_F6	$8B
-;	.define KEY_C64_F8	$8C
 
 	.define	KEY_M65_F1		$F1
 	.define	KEY_M65_F2		$F2
@@ -406,8 +389,7 @@
 	.define OPT_TEXTACCEL2X	$40
 	.define OPT_TEXTCONTMRK $80
 	.define	OPT_NOAUTOCHKOF $0100
-	.define	OPT_AUTODOWN	$0200
-
+	.define	OPT_AUTOTRACK	$0200
 
 	.define	ERROR_ABORT		$FF
 	.define	ERROR_NONE		$00

@@ -74,6 +74,10 @@
 #define CLR_PAPER		0x0005
 #define CLR_MONEY		0x0006
 #define	CLR_ITEM		0x0007
+#define CLR_INFORM		0x0008
+#define CLR_ACCEPT		0x0009
+#define CLR_APPLY		0x000A
+#define CLR_ABORT		0x000B
 
 #define CLR_INTN_THME	0x0000		//Theme colour
 #define CLR_SYSS_TEXT	0x1000		//Specific system text colour
@@ -88,7 +92,7 @@
 
 typedef	struct	THEME {
 		karlName_t		_name;
-		byte			_data[11];
+		byte			_data[15];
 	} judeTheme_t;
 
 
@@ -239,15 +243,22 @@ extern void	__fastcall__	JudeDefPnlPresent(void);
 extern byte	__fastcall__	JudeLogClrToSys(word colour);
 extern void	__fastcall__	_JudeLogClrIsReverse(word colour);
 extern void	__fastcall__	_JudeViewInit(void);
+extern void	__fastcall__	_JudeEraseLine(void);
 extern void	__fastcall__	_JudeDrawText(void);
 extern void	__fastcall__	_JudeDrawTextDirect(void);
 
+extern void __fastcall__	_JudeProcessAccelerators(void);
+extern void __fastcall__	_JudeMoveActiveControl(void);
 
 extern void	JudeViewInit(karlFarPtr_t *view);
+extern void	JudeEraseLine(byte w, byte x, byte y, word colour);
 extern void JudeDrawText(word colour, byte indent, byte mwidth, byte docont);
 extern void JudeDrawTextDirect(word colour, byte indent, byte mwidth, byte docont,
-			byte x, byte y, byte offs, void *text);
+			byte x, byte y, byte offs, unsigned long text);
 
 extern byte	JudeLogClrIsReverse(word colour);
+
+extern byte mouseXCol;
+extern byte mouseYRow;
 
 #endif
