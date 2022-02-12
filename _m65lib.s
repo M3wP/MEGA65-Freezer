@@ -9,14 +9,46 @@
 	.export _get_freeze_slot_count
 	.export _opendir, _readdir, _closedir, _closeall
 	
+	.export	_mega65_save_zp
+
 	.include "zeropage.inc"
 	
+
+.SEGMENT "DATA"
+ savezp:
+	.res	256
+
+
 .SEGMENT "CODE"
 
 	.p4510
+
+_mega65_save_zp:
+	LDX	#$02
+@loop:
+	LDA	$00, X
+	STA	savezp, X
+	INX
+	BNE	@loop
+
+	RTS
+
+_mega65_restore_zp:
+	LDX	#$02
+@loop:
+	LDA	savezp, X
+	STA	$00, X
+	INX
+	BNE	@loop
+
+	RTS
+
+
 	
 _mega65_dos_exechelper:
 	;; char mega65_dos_exechelper(char *image_name);
+
+	SEI
 
 	;; Get pointer to file name
 	;; sp here is the ca65 sp ZP variable, not the stack pointer of a 4510
@@ -30,7 +62,7 @@ _mega65_dos_exechelper:
 	.p4510
 	sta ptr1
 	sta $0140
-	
+
 	;; Copy file name
 	ldy #0
 @NameCopyLoop:
@@ -39,7 +71,14 @@ _mega65_dos_exechelper:
 	iny
 	cmp #0
 	bne @NameCopyLoop
-	
+
+	JSR	_mega65_restore_zp
+
+	; close all files to work around hyppo file descriptor leak bug
+        lda #$22
+        sta $d640
+        nop
+
 	;;  Call dos_setname()
 	ldy #>$0100
 	ldx #<$0100
@@ -48,8 +87,10 @@ _mega65_dos_exechelper:
 	NOP			; Wasted instruction slot required following hyper trap instruction
 	;; XXX Check for error (carry would be clear)
 
+	BCC	@error
+
 	; close all files to work around hyppo file descriptor leak bug
-        lda #$22
+       lda #$22
         sta $d640
         nop
 	
@@ -59,12 +100,13 @@ _mega65_dos_exechelper:
 @lfr1:	lda loadfile_routine,x
 	sta $0340,x
 	inx
-	cpx #$80
+	cpx #$30
 	bne @lfr1
 
 	;; Call helper routine
 	jsr $0340
 	
+@error:
 	;; as this is effectively like exec() on unix, it can only return an error
 	LDA #$01
 	LDX #$00
@@ -72,6 +114,18 @@ _mega65_dos_exechelper:
 	RTS
 
 loadfile_routine:
+	LDA	#$2F
+	STA	$00
+
+	LDA	#$07
+	STA	$01
+
+;	LDA	#$41
+;	STA	$00
+
+	LDA	#$00
+	STA	$DC0D
+
 	; Now load the file to $0400 over the screen
         lda #$36
         ldx #$FF
@@ -79,9 +133,20 @@ loadfile_routine:
         ldz #$00
         sta $d640
         nop
+        bcc @error
+
+        LDX	#$FF
+        TXS
+
         ldz     #$00
+        CLI
 	jmp $080d
 	rts
+@error:
+		LDA	#$02
+		STA	$D020
+		BRA	@error
+
 	
 _mega65_dos_attachd81:
 	;; char mega65_dos_attachd81(char *image_name);

@@ -23,6 +23,37 @@
  // 		__asm__ ("JMP %g", halt);
 
 
+char pathstack[8][32];
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void	update_dir_path(void) {
+	karlDWFarPtr_t data;
+
+	if (dir_depth < 8) {
+		txt_freeze_control38.text_p.loword = (word)&pathstack[dir_depth];
+		txt_freeze_control38.text_p.hiword = 0;
+
+		data.ptr.loword = (word)&txt_freeze_control38;
+		data.ptr.hiword = 0;
+		zptrself = data.data;
+
+		KarlObjIncludeState(STATE_DIRTY);
+	}
+
+	data.ptr.loword = (word)&btn_freeze_control3B;
+	data.ptr.hiword = 0;
+	zptrself = data.data;
+
+	if  (dir_depth == 0) 
+		KarlObjExcludeState(STATE_ENABLED);
+	else
+		KarlObjIncludeState(STATE_ENABLED);
+	
+	KarlObjIncludeState(STATE_DIRTY);
+}
+
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -140,10 +171,19 @@ void	update_state_page(void){
 	JudeRGroupReset(i);
  
 //  ROM version
-	ctl_freeze_controlA.text_p.loword = (word)(detect_rom());
-	ctl_freeze_controlA.text_p.hiword = 0x0000;
+//	ctl_freeze_controlA.text_p.loword = (word)(detect_rom());
+//	ctl_freeze_controlA.text_p.hiword = 0x0000;
+// 	cntrl_state_dirty(&ctl_freeze_controlA);
 
-  	cntrl_state_dirty(&ctl_freeze_controlA);
+//	CRT Emulation
+	i = (freeze_peek(0xFFD3054) & 0x10) ? 1 : 0;
+	obj.loword = (word)(&rgp_freeze_controlA);
+	obj.hiword = 0x0000;
+
+	data = *((dword *)&obj);
+	zptrself = data;
+	JudeRGroupReset(i);
+
 
 //	Cartridge enable
 	i = (freeze_peek(0xffd367dL) & 0x01) ? 0 : 1;
@@ -448,6 +488,7 @@ extern void __fastcall__	FreezeLBxChange(void) {
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void	__fastcall__ FreezeLBxPressed(void) {
+//***FIXME.  I need to address these "correctly"
 	char key = _zkarljr[0x64];
 	unsigned char mod = _zkarljr[0x65];
 	unsigned char flg = 0;
@@ -460,22 +501,8 @@ void	__fastcall__ FreezeLBxPressed(void) {
 	data.data = zptrself;
 	self = (freezeListBox_t*)(data.ptr.loword);
 
-	flg = (self->_control._element._object.state &
-			(STATE_ACTIVE| STATE_ENABLED | STATE_VISIBLE));
-
-// 	if  (flg
-// 	&&   (mouseXCol >= self->_control._element.posx)
-// 	&&   (mouseXCol < (self->_control._element.posx + self->_control._element.width)) 
-// 	&&	 (mouseYRow >= self->_control._element.posy)
-// 	&&   (mouseYRow < (self->_control._element.posy + self->_control._element.height))) {
-// 		self->currline = mouseYRow - self->_control._element.posy;
-// 		if  (self->currline > self->linescnt) 
-// 			self->currline = self->linescnt;
-// 		self->_control._element._object.tag = 0;
-// 		KarlObjIncludeState(STATE_DIRTY);
-// //		JudeUnDownCtrl();
-// 		return;
-// 	}
+//	flg = (self->_control._element._object.state &
+//			(STATE_ACTIVE| STATE_ENABLED | STATE_VISIBLE));
 
 	flg = 0;
 
@@ -571,26 +598,77 @@ void 	__fastcall__	FreezeImgLstSelect(void) {
 
 
 	lcopy(faddr, (unsigned long)disk_name_return, 32);
+//  Then null terminate it
+    for (l = 31; l; l--)
+	    if  (disk_name_return[l] == ' ')
+            disk_name_return[l] = 0;
+	    else
+	        break;
 
-	disk_filecnt = 0;
-	draw_directory_contents();
-
+//***FIXME Remove this debugging
 	data.ptr.loword = (unsigned short)disk_name_return;
 	data.ptr.hiword = 0;
 	JudeDrawTextDirect(CLR_PAPER, 0, 32, 0, 0, 0, 0, data.data);
+//---
 
-
-	lbx_freeze_control3C.linescnt = disk_filecnt;
-//	lbx_freeze_control3A.linewidth = 0x40;
-
+	disk_filecnt = 0;
 	lbx_freeze_control3C.linesoff = 0x00;
 	lbx_freeze_control3C.currline = 0x00;
+	lbx_freeze_control3C.hotline = 0x00;
+	lbx_freeze_control3C.selline = 0xFF;
 
-	lbx_freeze_control3C._control._element._object.state|= STATE_ENABLED; 
-	lbx_freeze_control3C._control._element._object.tag = 0;
+	if (disk_name_return[0] == '/') {
+//		Its a directory
+        if (!mega65_dos_chdir(&disk_name_return[1])) {
+        	if  (disk_name_return[2] == '.') 
+				dir_depth--;
+			else {
+				dir_depth++;
+
+				if (dir_depth < 8) {
+					pathstack[dir_depth][0] = '.';
+
+					for (l = 1; l < 31; l++)
+						pathstack[dir_depth][l] = disk_name_return[l - 1];
+
+					pathstack[dir_depth][31] = 0;
+				}
+			}
+
+			update_dir_path();
+
+	        scan_directory(drive_id);
+
+			lbx_freeze_control3A.linescnt = file_count;
+			lbx_freeze_control3C.linescnt = 0;
+
+			lbx_freeze_control3A.linesoff = 0x00;
+			lbx_freeze_control3A.currline = 0x00;
+			lbx_freeze_control3A.hotline = 0x00;
+			lbx_freeze_control3A.selline = 0xFF;
+
+			lbx_freeze_control3A._control._element._object.state|= STATE_ENABLED; 
+			lbx_freeze_control3A._control._element._object.tag = 0;
+
+			lbx_freeze_control3C._control._element._object.state = STATE_VISIBLE; 
+			lbx_freeze_control3C._control._element._object.tag = 0;
+
+			data.ptr.loword = (word)&lbx_freeze_control3A;
+			data.ptr.hiword = 0x0000;
+			zptrself = data.data;
+			KarlObjIncludeState(STATE_DIRTY); 
+   		}
+    } else {
+		draw_directory_contents();
+
+		lbx_freeze_control3C.linescnt = disk_filecnt;
+
+		lbx_freeze_control3C._control._element._object.state|= STATE_ENABLED; 
+		lbx_freeze_control3C._control._element._object.tag = 0;
+	}
 
 	data.ptr.loword = (word)&lbx_freeze_control3C;
-  	data.ptr.hiword = 0x0000;
+	data.ptr.hiword = 0x0000;
 	zptrself = data.data;
 	KarlObjIncludeState(STATE_DIRTY); 
 }
@@ -932,6 +1010,31 @@ void	__fastcall__ 	FreezeVideoNTSCChg(void) {
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
+void	__fastcall__ 	FreezeCRTEnblChg(void) {
+	word	flg	= (rgp_freeze_controlA._control._element._object.state & STATE_DOWN);
+
+	JudeDefRGpChange();
+
+	if (flg) {
+        freeze_poke(0xFFD3054L, freeze_peek(0xFFD3054L) & (0xFF ^ 0x10));
+	}
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void	__fastcall__ 	FreezeCRTDsblChg(void) {
+	word	flg	= (rbt_freeze_control40._control._element._object.state & STATE_DOWN);
+
+	JudeDefRBtChange();
+
+	if (flg) {
+        freeze_poke(0xFFD3054L, freeze_peek(0xFFD3054L) | 0x10);
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void	__fastcall__ 	FreezeCartEnblChg(void) {
 	word	flg	= (rgp_freeze_controlF._control._element._object.state & STATE_DOWN);
 
@@ -994,51 +1097,61 @@ void __fastcall__	FreezeDiskNum0Chg(void) {
 	}
 }
 
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void	init_disk_select(byte id) {
+	karlDWFarPtr_t data;
+
+	data.ptr.loword = (word)(&rgp_freeze_control34);
+	data.ptr.hiword = 0x0000;
+	zptrself = data.data;
+	JudeRGroupReset(0);
+
+	pathstack[0][0] = '/';
+	pathstack[0][1] = 0;
+
+	mega65_dos_chdirroot();
+	dir_depth = 0;
+
+	update_dir_path();
+
+	scan_directory(id);
+
+	lbx_freeze_control3A.linescnt = file_count;
+	lbx_freeze_control3C.linescnt = 0;
+
+	lbx_freeze_control3A.linesoff = 0x00;
+	lbx_freeze_control3A.currline = 0x00;
+	lbx_freeze_control3A.hotline = 0x00;
+	lbx_freeze_control3A.selline = 0xFF;
+
+	lbx_freeze_control3C.linesoff = 0x00;
+	lbx_freeze_control3C.currline = 0x00;
+	lbx_freeze_control3C.hotline = 0x00;
+	lbx_freeze_control3C.selline = 0xFF;
+
+	lbx_freeze_control3A._control._element._object.state = STATE_VISIBLE; 
+	lbx_freeze_control3A._control._element._object.tag = 0;
+
+	lbx_freeze_control3C._control._element._object.state = STATE_VISIBLE; 
+	lbx_freeze_control3C._control._element._object.tag = 0;
+
+ 	data.ptr.loword = (word)&pge_freeze_page2;
+	data.ptr.hiword = 0x0000;
+	zptrself = data.data;
+	JudeActivatePage(); 
+}
+
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void __fastcall__	FreezeDiskImg0Chg(void) {
-	karlFarPtr_t obj;
-  	dword data;
 	word	flg	= (ctl_freeze_control21._element._object.state & STATE_DOWN);
 
 	JudeDefCtlChange();
 
 	if (flg) {
-		mega65_dos_chdirroot();
-		dir_depth = 0;
-
-		scan_directory(0);
-
-//		lbx_freeze_control3A.lines_p.loword = 0x0000;
-//		lbx_freeze_control3A.lines_p.hiword = 0x0004;
-
-		lbx_freeze_control3A.linescnt = file_count;
-		lbx_freeze_control3C.linescnt = 0;
-//		lbx_freeze_control3A.linewidth = 0x40;
-
-		lbx_freeze_control3A.linesoff = 0x00;
-		lbx_freeze_control3A.currline = 0x00;
-		lbx_freeze_control3A.hotline = 0x00;
-		lbx_freeze_control3A.selline = 0xFF;
-
-		lbx_freeze_control3C.linesoff = 0x00;
-		lbx_freeze_control3C.currline = 0x00;
-		lbx_freeze_control3C.hotline = 0x00;
-		lbx_freeze_control3C.selline = 0xFF;
-
-		lbx_freeze_control3A._control._element._object.state|= STATE_ENABLED; 
-		lbx_freeze_control3A._control._element._object.tag = 0;
-
-		lbx_freeze_control3C._control._element._object.state = STATE_VISIBLE; 
-		lbx_freeze_control3C._control._element._object.tag = 0;
-
-	 	obj.loword = (word)&pge_freeze_page2;
-  		obj.hiword = 0x0000;
-
-  		data = *((dword *)&obj);
-  		zptrself = data;
- 		JudeActivatePage(); 
+		init_disk_select(0);
 	}
 }
 
@@ -1065,9 +1178,237 @@ void __fastcall__	FreezeDiskImg1Chg(void) {
 	JudeDefCtlChange();
 
 	if (flg) {
-		mega65_dos_chdirroot();
-		dir_depth = 0;
-		scan_directory(1);
+		init_disk_select(1);
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeDrvTypeImgChg(void) {
+	karlDWFarPtr_t data;
+
+	JudeDefRBtChange();
+
+	data.ptr.loword = (word)&lbx_freeze_control3A;
+	data.ptr.hiword = 0;
+	zptrself = data.data;
+
+	if  (rbt_freeze_control36._control._element._object.tag) {
+		KarlObjIncludeState(STATE_ENABLED);
+
+		update_dir_path();
+
+		data.ptr.loword = (word)&lbx_freeze_control3C;
+		data.ptr.hiword = 0;
+		zptrself = data.data;
+
+		if  (lbx_freeze_control3A.selline != 0xFF)
+			KarlObjIncludeState(STATE_ENABLED);
+	} else {
+		KarlObjExcludeState(STATE_ENABLED);
+
+		data.ptr.loword = (word)&lbx_freeze_control3C;
+		data.ptr.hiword = 0;
+		zptrself = data.data;
+
+		KarlObjExcludeState(STATE_ENABLED);
+
+		data.ptr.loword = (word)&btn_freeze_control3B;
+		data.ptr.hiword = 0;
+		zptrself = data.data;
+
+		KarlObjExcludeState(STATE_ENABLED);
+	}
+}
+
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeDirUpChange(void) {
+	karlDWFarPtr_t data;
+	word	flg	= (btn_freeze_control3B._element._object.state & STATE_DOWN);
+
+	JudeDefCtlChange();
+
+	if (flg) {
+		mega65_dos_chdir("..");
+
+		dir_depth--;
+		disk_filecnt = 0;
+
+		lbx_freeze_control3C.linesoff = 0x00;
+		lbx_freeze_control3C.currline = 0x00;
+		lbx_freeze_control3C.hotline = 0x00;
+		lbx_freeze_control3C.selline = 0xFF;
+
+
+//***FIXME This code is the same as above FreezeImgLstSelect
+		update_dir_path();
+
+        scan_directory(drive_id);
+
+		lbx_freeze_control3A.linescnt = file_count;
+		lbx_freeze_control3C.linescnt = 0;
+
+		lbx_freeze_control3A.linesoff = 0x00;
+		lbx_freeze_control3A.currline = 0x00;
+		lbx_freeze_control3A.hotline = 0x00;
+		lbx_freeze_control3A.selline = 0xFF;
+
+		lbx_freeze_control3A._control._element._object.state|= STATE_ENABLED; 
+		lbx_freeze_control3A._control._element._object.tag = 0;
+
+		lbx_freeze_control3C._control._element._object.state = STATE_VISIBLE; 
+		lbx_freeze_control3C._control._element._object.tag = 0;
+
+		data.ptr.loword = (word)&lbx_freeze_control3A;
+		data.ptr.hiword = 0x0000;
+		zptrself = data.data;
+		KarlObjIncludeState(STATE_DIRTY); 
+
+		data.ptr.loword = (word)&lbx_freeze_control3C;
+		data.ptr.hiword = 0x0000;
+		zptrself = data.data;
+		KarlObjIncludeState(STATE_DIRTY); 
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeDrvAcceptChg(void) {
+	karlDWFarPtr_t data;
+	byte flg = (btn_freeze_control3E._element._object.state & STATE_DOWN);
+	byte x, i, ok;
+
+	ok = 1;
+
+	JudeDefCtlChange();
+
+	if  (flg) {
+		if  ((rbt_freeze_control36._control._element._object.tag)
+		&&   (lbx_freeze_control3A.selline == 0xFF))
+			flash_control((word)&lbx_freeze_control3A, CLR_ABORT);
+		else {
+//			First, clear flags for the F011 image
+    		if  (drive_id == 0) {
+//				Clear flags for drive 0
+        		lpoke(0xffd368bL, lpeek(0xffd368bL) & 0xb8);
+
+//				there seem to be an issue reliably using lpoke/lpeek here
+//				so for now we repeat to ensure we have what we want
+        		while (lpeek(0xffd36a1L) & 1) {
+         			lpoke(0xffd36a1L, lpeek(0xffd36a1L) & 0xfe);
+        		}
+    		}
+    		else if (drive_id == 1) {
+//				Clear flags for drive 1
+        		lpoke(0xffd368bL, lpeek(0xffd368bL) & 0x47);
+        		while (lpeek(0xffd36a1L) & 4) {
+        			lpoke(0xffd36a1L, lpeek(0xffd36a1L) & 0xfb);
+        		}
+    		}
+
+			if (rgp_freeze_control34._control._element._object.tag) {
+				if (drive_id == 0)
+              		lpoke(0xffd368bL, (lpeek(0xffd368bL) & 0xb8) + 0x01);
+            	if (drive_id == 1)
+              		lpoke(0xffd368bL, (lpeek(0xffd368bL) & 0x47) + 0x08);
+          	} else if (rbt_freeze_control35._control._element._object.tag) {
+				if (drive_id == 0)
+//					Use internal drive (drive 0 only)
+	            	while (!(lpeek(0xffd36a1L) & 1)) {
+              			lpoke(0xffd36a1L, lpeek(0xffd36a1L) | 0x01);
+              		}
+
+            	if (drive_id == 1)
+//					Use 1565 external drive (drive 1 only)
+            		while (!(lpeek(0xffd36a1L) & 4)) {
+              			lpoke(0xffd36a1L, lpeek(0xffd36a1L) | 0x04);
+              		}
+            } else {
+          		if  (drive_id == 0)
+            		lpoke(0xffd368bL, (lpeek(0xffd368bL) & 0xb8) + 0x07);
+          		if (drive_id == 1)
+            		lpoke(0xffd368bL, (lpeek(0xffd368bL) & 0x47) + 0x38);
+          		if (mega65_dos_attachd81(disk_name_return)) {
+//					Mounting the image failed
+          			ok = 0;
+        			POKE(0xD080U, 0x40);
+
+//					Mark drive as having nothing in it
+            		if (drive_id == 0) {
+//						Clear flags for drive 0
+              			lpoke(0xffd368bL, lpeek(0xffd368bL) & 0xb8);
+              			lpoke(0xffd36a1L, lpeek(0xffd36a1L) & 0xfe);
+            		}
+            		else if (drive_id == 1) {
+//						Clear flags for drive 1
+              			lpoke(0xffd368bL, lpeek(0xffd368bL) & 0x47);
+              			lpoke(0xffd36a1L, lpeek(0xffd36a1L) & 0xfb);
+            		}            	
+            	} else {
+//					Mount succeeded, now seek to track 0 to make sure DOS
+//					knows where we are, and to make sure the drive head is
+//					sitting properly.
+        			while (!(PEEK(0xD082) & 0x01)) {
+          				POKE(0xD081, 0x10);
+          				usleep(7000);
+        			}
+//					Now check the contents of $D084 to find out the most recently
+//					requested track, and seek the head to that track.
+					x = freeze_peek(0xFFD3084); // Get last requested track by frozen programme
+					while(x) {
+	  					POKE(0xD081, 0x18);
+	  					while(PEEK(0xD082)&0x80) 
+	  						POKE(0xD020,PEEK(0xD020)+1);
+	  					x--;
+					}            		
+          			
+          			request_freeze_region_list();
+
+//					Replace disk image name in process descriptor block
+           			for (i = 0; (i < 32) && disk_name_return[i]; i++)
+                		freeze_poke(0xFFFBD00L + 0x15 + i, disk_name_return[i]);
+//					Update length of name
+              		freeze_poke(0xFFFBD00L + 0x13, i);
+
+//					Pad with spaces as required by hypervisor
+              		for (; i < 32; i++)
+                		freeze_poke(0xFFFBD00L + 0x15 + i, ' ');
+            	}
+			}
+
+			if (ok) {
+				POKE(0xD080U, 0);
+				update_state_page();
+		 		
+		 		data.ptr.loword = (word)&pge_freeze_page0;
+	  			data.ptr.hiword = 0x0000;
+	  			zptrself = data.data;
+	 			JudeActivatePage();
+	 		} else
+	 			flash_border(CLR_ABORT);
+		}
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeDrvCancelChg(void) {
+	karlDWFarPtr_t data;
+	byte flg = btn_freeze_control3F._element._object.state & STATE_DOWN;
+
+	JudeDefCtlChange();
+
+	if  (flg) {
+	 	data.ptr.loword = (word)&pge_freeze_page0;
+  		data.ptr.hiword = 0x0000;
+  		zptrself = data.data;
+ 		JudeActivatePage(); 				
 	}
 }
 
@@ -1110,5 +1451,30 @@ void	__fastcall__ 	FreezeToolSprChg(void) {
 	if (flg) {
 		mega65_dos_exechelper("SPRITED.M65");
 		KarlPanic();
+	}
+}
+
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void __fastcall__	FreezeMkDskChange(void) {
+	word	flg	= (btn_freeze_control48._element._object.state & STATE_DOWN);
+
+	JudeDefCtlChange();
+
+	if (flg) {
+//		Save the current freeze slot number, so that the image can get mounted against us
+	    POKE(0x03C0, slot_number & 0xff);
+	    POKE(0x03C1, slot_number >> 8);
+
+//		Tell MAKEDISK if we want a D81 or a D65 image
+	    if (rgp_freeze_control46._control._element._object.tag)
+	    	POKE(0x33c,0); // 0=DD
+	    else
+	      	POKE(0x33c,1); // 1=HD
+
+	    mega65_dos_exechelper("MAKEDISK.M65");
+
+	    KarlPanic();
 	}
 }

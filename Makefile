@@ -3,7 +3,7 @@ CL65=	cl65
 
 #Can't mix 4510 and 65C02 right now
 #COPTS=	-t c64 -Os --cpu 65c02 -Icc65/include
-COPTS=	-t c64 -Icc65/include
+COPTS=	-t c64 -Os -Icc65/include
 
 LOPTS=	--asm-include-dir cc65/asminc --cfg-path cc65/cfg --lib-path cc65/lib
 

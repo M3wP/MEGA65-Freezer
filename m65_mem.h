@@ -9,6 +9,8 @@ extern void lcopy(long source_address, long destination_address, unsigned int co
 extern void lcopy_safe(unsigned long src, unsigned long dst, unsigned int count);
 extern void lfill(long destination_address, unsigned char value, unsigned int count);
 
+extern void __fastcall__ mega65_save_zp(void);
+
 #define POKE(X, Y) (*(unsigned char*)(X)) = Y
 #define PEEK(X) (*(unsigned char*)(X))
 

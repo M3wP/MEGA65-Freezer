@@ -43,6 +43,40 @@ unsigned char c64_palette[64]={
 unsigned char colour_table[256];
 
 
+void    flash_control(word ctrl, word clr) {
+    karlDWFarPtr_t data;
+    byte i;
+
+    data.ptr.loword = ctrl;
+    data.ptr.hiword = 0;
+    zptrself = data.data;
+
+    for (i = 0; i < 3; i++) {
+        JudeEraseBkg(clr);
+        usleep(250000);
+
+        JudeEraseBkg(CLR_TEXT);
+        usleep(250000);
+    }
+
+    KarlObjIncludeState(STATE_DIRTY);
+}
+
+void    flash_border(word clr) {
+    byte c = JudeLogClrToSys(clr);
+    byte i;
+    byte p = PEEK(0xD020U);
+
+    for (i = 0; i < 3; i ++) {
+        POKE(0xD020U, c);
+        usleep(250000);
+
+        POKE(0xD020U, p);
+        usleep(250000);
+    }
+}
+
+
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 void	cntrl_state_dirty(void* ctrl) {
@@ -310,13 +344,6 @@ void draw_directory_contents(void) {
 
     JudeSetPointer(MPTR_WAIT);
 
-//  Then null terminate it
-    for (x = 31; x; x--)
-	    if  (disk_name_return[x] == ' ')
-            disk_name_return[x] = 0;
-	    else
-	        break;
-
 //  Try to mount it, with border black while working
 //  POKE(0xD020U, 15);
 	
@@ -491,89 +518,89 @@ void set_cpu_speed(unsigned char speed)
 	}
 }
 
-char c65_rom_name[12];
-char* detect_rom(void)
-{
-	unsigned char i;
+// char c65_rom_name[12];
+// char* detect_rom(void)
+// {
+// 	unsigned char i;
 
-	// Check for C65 ROM via version string
-	if ((freeze_peek(0x20016L) == 'V') && (freeze_peek(0x20017L) == '9')) {
-		c65_rom_name[0] = ' ';
-		c65_rom_name[1] = 'C';
-		c65_rom_name[2] = '6';
-		c65_rom_name[3] = '5';
-		c65_rom_name[4] = ' ';
-		for (i = 0; i < 6; i++)
-			c65_rom_name[5 + i] = freeze_peek(0x20017L + i);
-		c65_rom_name[11] = 0;
-		return c65_rom_name;
-	}
+// 	// Check for C65 ROM via version string
+// 	if ((freeze_peek(0x20016L) == 'V') && (freeze_peek(0x20017L) == '9')) {
+// 		c65_rom_name[0] = ' ';
+// 		c65_rom_name[1] = 'C';
+// 		c65_rom_name[2] = '6';
+// 		c65_rom_name[3] = '5';
+// 		c65_rom_name[4] = ' ';
+// 		for (i = 0; i < 6; i++)
+// 			c65_rom_name[5 + i] = freeze_peek(0x20017L + i);
+// 		c65_rom_name[11] = 0;
+// 		return c65_rom_name;
+// 	}
 
-	if (freeze_peek(0x2e47dL) == 'J') {
-		// Probably jiffy dos
-		if (freeze_peek(0x2e535L) == 0x06)
-			return "sx64 jiffy ";
-		else
-			return "c64 jiffy	";
-	}
+// 	if (freeze_peek(0x2e47dL) == 'J') {
+// 		// Probably jiffy dos
+// 		if (freeze_peek(0x2e535L) == 0x06)
+// 			return "sx64 jiffy ";
+// 		else
+// 			return "c64 jiffy	";
+// 	}
 
-	// Else guess using detection routines from detect_roms.c
-	// These were built using a combination of the ROMs from zimmers.net/pub/c64/firmware,
-	// the RetroReplay ROM collection, and the JiffyDOS ROMs
-	if (freeze_peek(0x2e449L) == 0x2e)
-		return "C64GS			";
-	if (freeze_peek(0x2e119L) == 0xc9)
-		return "C64 REV1	 ";
-	if (freeze_peek(0x2e67dL) == 0xb0)
-		return "C64 REV2 JP";
-	if (freeze_peek(0x2ebaeL) == 0x5b)
-		return "C64 REV3 DK";
-	if (freeze_peek(0x2e0efL) == 0x28)
-		return "C64 SCAND	";
-	if (freeze_peek(0x2ebf3L) == 0x40)
-		return "C64 SWEDEN ";
-	if (freeze_peek(0x2e461L) == 0x20)
-		return "CYCLONE 1.0";
-	if (freeze_peek(0x2e4a4L) == 0x41)
-		return "DOLPHIN 1.0";
-	if (freeze_peek(0x2e47fL) == 0x52)
-		return "DOLPHIN 2AU";
-	if (freeze_peek(0x2eed7L) == 0x2c)
-		return "DOLPHIN 2P1";
-	if (freeze_peek(0x2e7d2L) == 0x6b)
-		return "DOLPHIN 2P2";
-	if (freeze_peek(0x2e4a6L) == 0x32)
-		return "DOLPHIN 2P3";
-	if (freeze_peek(0x2e0f9L) == 0xaa)
-		return "DOLPHIN 3.0";
-	if (freeze_peek(0x2e462L) == 0x45)
-		return "DOSROM V1.2";
-	if (freeze_peek(0x2e472L) == 0x20)
-		return "MERCRY3 PAL";
-	if (freeze_peek(0x2e16dL) == 0x84)
-		return "MERCRY NTSC";
-	if (freeze_peek(0x2e42dL) == 0x4c)
-		return "PET 4064	 ";
-	if (freeze_peek(0x2e1d9L) == 0xa6)
-		return "SX64 CROACH";
-	if (freeze_peek(0x2eba9L) == 0x2d)
-		return "SX64 SCAND ";
-	if (freeze_peek(0x2e476L) == 0x2a)
-		return "TRBOACS 2.6";
-	if (freeze_peek(0x2e535L) == 0x07)
-		return "TRBOACS 3P1";
-	if (freeze_peek(0x2e176L) == 0x8d)
-		return "TRBOASC 3P2";
-	if (freeze_peek(0x2e42aL) == 0x72)
-		return "TRBOPROC US";
-	if (freeze_peek(0x2e4acL) == 0x81)
-		return "C64C 251913";
-	if (freeze_peek(0x2e479L) == 0x2a)
-		return "C64 REV2	 ";
-	if (freeze_peek(0x2e535L) == 0x06)
-		return "SX64 REV4	";
-	return "UNKNOWN ROM";
-}
+// 	// Else guess using detection routines from detect_roms.c
+// 	// These were built using a combination of the ROMs from zimmers.net/pub/c64/firmware,
+// 	// the RetroReplay ROM collection, and the JiffyDOS ROMs
+// 	if (freeze_peek(0x2e449L) == 0x2e)
+// 		return "C64GS			";
+// 	if (freeze_peek(0x2e119L) == 0xc9)
+// 		return "C64 REV1	 ";
+// 	if (freeze_peek(0x2e67dL) == 0xb0)
+// 		return "C64 REV2 JP";
+// 	if (freeze_peek(0x2ebaeL) == 0x5b)
+// 		return "C64 REV3 DK";
+// 	if (freeze_peek(0x2e0efL) == 0x28)
+// 		return "C64 SCAND	";
+// 	if (freeze_peek(0x2ebf3L) == 0x40)
+// 		return "C64 SWEDEN ";
+// 	if (freeze_peek(0x2e461L) == 0x20)
+// 		return "CYCLONE 1.0";
+// 	if (freeze_peek(0x2e4a4L) == 0x41)
+// 		return "DOLPHIN 1.0";
+// 	if (freeze_peek(0x2e47fL) == 0x52)
+// 		return "DOLPHIN 2AU";
+// 	if (freeze_peek(0x2eed7L) == 0x2c)
+// 		return "DOLPHIN 2P1";
+// 	if (freeze_peek(0x2e7d2L) == 0x6b)
+// 		return "DOLPHIN 2P2";
+// 	if (freeze_peek(0x2e4a6L) == 0x32)
+// 		return "DOLPHIN 2P3";
+// 	if (freeze_peek(0x2e0f9L) == 0xaa)
+// 		return "DOLPHIN 3.0";
+// 	if (freeze_peek(0x2e462L) == 0x45)
+// 		return "DOSROM V1.2";
+// 	if (freeze_peek(0x2e472L) == 0x20)
+// 		return "MERCRY3 PAL";
+// 	if (freeze_peek(0x2e16dL) == 0x84)
+// 		return "MERCRY NTSC";
+// 	if (freeze_peek(0x2e42dL) == 0x4c)
+// 		return "PET 4064	 ";
+// 	if (freeze_peek(0x2e1d9L) == 0xa6)
+// 		return "SX64 CROACH";
+// 	if (freeze_peek(0x2eba9L) == 0x2d)
+// 		return "SX64 SCAND ";
+// 	if (freeze_peek(0x2e476L) == 0x2a)
+// 		return "TRBOACS 2.6";
+// 	if (freeze_peek(0x2e535L) == 0x07)
+// 		return "TRBOACS 3P1";
+// 	if (freeze_peek(0x2e176L) == 0x8d)
+// 		return "TRBOASC 3P2";
+// 	if (freeze_peek(0x2e42aL) == 0x72)
+// 		return "TRBOPROC US";
+// 	if (freeze_peek(0x2e4acL) == 0x81)
+// 		return "C64C 251913";
+// 	if (freeze_peek(0x2e479L) == 0x2a)
+// 		return "C64 REV2	 ";
+// 	if (freeze_peek(0x2e535L) == 0x06)
+// 		return "SX64 REV4	";
+// 	return "UNKNOWN ROM";
+// }
 
 void	freeze_reset(void) {
 		unsigned char c;
@@ -647,8 +674,8 @@ void	decimal_to_string(unsigned int v) {
 	}
 }
 
-//#define thumbnail_buffer	0x00008000U
-unsigned char thumbnail_buffer[4096];
+#define thumbnail_buffer	0xE000U
+//unsigned char thumbnail_buffer[4096];
 
 void draw_thumbnail(void)
 {
@@ -685,7 +712,8 @@ void draw_thumbnail(void)
 	}
 
 	// Pick colours of all pixels in the thumbnail
-	for(j=0;j<4096;j++) thumbnail_buffer[j]=colour_table[thumbnail_buffer[j]];
+	for(j=0;j<4096;j++) 
+        POKE(thumbnail_buffer + j, colour_table[PEEK(thumbnail_buffer + j)]);
 	
 
 //dengland
@@ -710,7 +738,7 @@ void draw_thumbnail(void)
 		xoffset=0;
 		for (x = 0; x < 81; x+=8) {
 			j=8; 
-			lcopy ((unsigned long)&thumbnail_buffer[x + yoffset], 0x50000L + xoffset + yoffset_out, j);
+			lcopy ((unsigned long)thumbnail_buffer + x + yoffset, 0x50000L + xoffset + yoffset_out, j);
 
 			xoffset+=64*6;			
 		}

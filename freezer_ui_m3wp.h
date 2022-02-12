@@ -54,6 +54,9 @@ extern void	__fastcall__	FreezeFreq40MHzChg(void);
 extern void	__fastcall__ 	FreezeVideoPALChg(void);
 extern void __fastcall__ 	FreezeVideoNTSCChg(void);
 
+extern void	__fastcall__ 	FreezeCRTEnblChg(void);
+extern void	__fastcall__ 	FreezeCRTDsblChg(void);
+
 extern void	__fastcall__ 	FreezeCartEnblChg(void);
 extern void	__fastcall__ 	FreezeCartDsblChg(void);
 
@@ -66,8 +69,18 @@ extern void __fastcall__	FreezeDiskImg0Chg(void);
 extern void __fastcall__	FreezeDiskNum1Chg(void);
 extern void __fastcall__	FreezeDiskImg1Chg(void);
 
+extern void __fastcall__	FreezeDrvTypeImgChg(void);
+
+extern void __fastcall__	FreezeDirUpChange(void);
+
+extern void __fastcall__	FreezeDrvAcceptChg(void);
+extern void __fastcall__	FreezeDrvCancelChg(void);
+
+
 extern void	__fastcall__ 	FreezeToolMonChg(void);
 extern void	__fastcall__ 	FreezeToolAudChg(void);
 extern void	__fastcall__ 	FreezeToolSprChg(void);
+
+extern void __fastcall__	FreezeMkDskChange(void);
 
 #endif

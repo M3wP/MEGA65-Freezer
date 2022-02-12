@@ -2749,17 +2749,16 @@ __JudeSendKeys:
 		AND	#KEY_MOD_SYS
 		BEQ	@tstfkeys
 
-;	M65 is giving us values with the high bit set for
-;	MEGA KEY + Key keys.
-;		LDA	#$80
-;		TRB	zvalkey
 		JMP	@findaccel
 
 @tstfkeys:
 		LDA	zvalkey
 		CMP	#KEY_M65_F1
 		BCS	@fkey0
-			
+	
+		CMP	#KEY_M65_ESC
+		LBEQ	@findaccel
+
 		JMP	@isdownctrl
 
 @fkey0:

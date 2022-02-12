@@ -15,12 +15,15 @@ extern unsigned char c64_palette[64];
 
 extern unsigned char colour_table[256];
 
+extern void    flash_control(word ctrl, word clr);
+extern void    flash_border(word clr);
+
 extern void 	set_palette(void);
 
 extern unsigned char detect_cpu_speed(void);
 extern void 	set_cpu_speed(unsigned char speed);
 
-extern char* 	detect_rom(void);
+//extern char* 	detect_rom(void);
 
 extern void 	freeze_reset(void);
 

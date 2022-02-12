@@ -76,6 +76,15 @@ extern const char 	str_freeze_control3B[];
 extern char	str_freeze_ctrl38[];
 extern const char	str_freeze_ctrl39[];
 
+extern const char  str_freeze_ctrl41[];
+extern const char  str_freeze_ctrl42[];
+extern const char  str_freeze_ctrl43[];
+extern const char  str_freeze_ctrl44[];
+extern const char  str_freeze_ctrl45[];
+extern const char  str_freeze_ctrl46[];
+extern const char  str_freeze_ctrl47[];
+extern const char  str_freeze_ctrl48[];
+
 extern karlModule_t mod_freeze_app;
 extern judeUInterface_t uni_freeze_ui;
 
@@ -133,7 +142,11 @@ extern karlFarPtr_t cts_freeze_panel0[];
 
 extern judeControl_t txt_freeze_control8;
 extern judeLabelCtrl_t lbl_freeze_control9;
-extern judeControl_t ctl_freeze_controlA;
+extern judeRadioGrpCtrl_t rgp_freeze_controlA;
+extern judeRadioBtnCtrl_t rbt_freeze_control40;
+
+extern karlFarPtr_t cts_freeze_rgrp6[];
+
 extern judeLabelCtrl_t lbl_freeze_controlB;
 extern judeRadioGrpCtrl_t rgp_freeze_controlC;
 extern judeRadioBtnCtrl_t rbt_freeze_controlD;
@@ -199,6 +212,21 @@ extern judeControl_t txt_freeze_control2D;
 extern judeControl_t btn_freeze_control2E;
 extern judeControl_t btn_freeze_control2F;
 extern judeControl_t btn_freeze_control30;
+
+extern judePanel_t pnl_freeze_panelA;
+extern karlFarPtr_t cts_freeze_panelA[];
+
+extern judeControl_t txt_freeze_control41;
+// extern judeLabelCtrl_t lbl_freeze_control42;
+// extern judeRadioGrpCtrl_t rgp_freeze_control43;
+// extern karlFarPtr_t cts_freeze_rgrp7[];
+// extern judeRadioBtnCtrl_t rbt_freeze_control44;
+extern judeLabelCtrl_t lbl_freeze_control45;
+extern judeRadioGrpCtrl_t rgp_freeze_control46;
+extern karlFarPtr_t cts_freeze_rgrp8[];
+extern judeRadioBtnCtrl_t rbt_freeze_control47;
+extern judeControl_t btn_freeze_control48;
+
 
 extern judePage_t pge_freeze_page2;
 
