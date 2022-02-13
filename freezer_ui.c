@@ -184,8 +184,8 @@ judeUInterface_t uni_freeze_ui = {
 //	Named
 		"M65FREEZERM3WP  ",//		;name
 //	UI
-		DWRDTOFARPTRREC(0x1000, 0x0001),//		;mouseloc
-		DWRDTOFARPTRREC(0x1200, 0x0001),//		;mptrloc
+		DWRDTOFARPTRREC(0x3000, 0x0001),//		;mouseloc
+		DWRDTOFARPTRREC(0x3200, 0x0001),//		;mptrloc
 		0x01,//						;mousepal
 		NEARTOFARPTRREC(vws_freeze_ui),//		;views_p
 		0x01};//						;viewscnt
@@ -213,7 +213,7 @@ judeView_t vew_freeze_view = {
 //View
 		0x50,//						;width
 		0x19,//						;height
-		DWRDTOFARPTRREC(0x0000, 0x0001),//				;location
+		DWRDTOFARPTRREC(0x2000, 0x0001),//				;location
 		0x02,//						;cellsize
 		NEARTOFARPTRREC(lys_freeze_view),//			;layers_p
 		0x01,//						;layerscnt

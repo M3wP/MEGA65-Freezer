@@ -9,7 +9,7 @@
 #include "jude.h"
 
 
-#define     FDDDIRADDR  0x00014000U
+#define     FDDDIRADDR  0x00016000U
 
 unsigned short file_count = 0;
 unsigned short dir_depth = 0;

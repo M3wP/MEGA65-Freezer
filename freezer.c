@@ -3,13 +3,12 @@
 #include 	"freezer.h"
 #include	"m65_mem.h"
 
-void	main(void) {
+
+void	action(void) {
 		karlFarPtr_t	modulep = {
 			NEARTOFARPTRREC(mod_freeze_app)};
 		karlFarPtr_t	viewp = {
 			NEARTOFARPTRREC(vew_freeze_view)};
-
-		mega65_save_zp();
 
 		KarlInit();
 		JudeInit();
@@ -18,4 +17,9 @@ void	main(void) {
 		JudeViewInit(&viewp);
 
 		JudeMain();
+}
+
+void	main(void) {
+		mega65_save_zp();
+		action();
 }

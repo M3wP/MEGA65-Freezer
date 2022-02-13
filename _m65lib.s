@@ -24,6 +24,19 @@
 	.p4510
 
 _mega65_save_zp:
+	LDA	#$00
+	LDX	#$00
+	LDY	#$00
+	LDZ	#$00
+	MAP
+	EOM
+
+	LDY	#$01
+	TYS
+
+	LDA	#$00
+	TAB
+
 	LDX	#$02
 @loop:
 	LDA	$00, X
@@ -48,7 +61,66 @@ _mega65_restore_zp:
 _mega65_dos_exechelper:
 	;; char mega65_dos_exechelper(char *image_name);
 
+	LDA	#$00
+	LDX	#$00
+	LDY	#$00
+	LDZ	#$00
+	MAP
+	EOM
+
 	SEI
+
+	LDY	#$01
+	TYS
+
+	LDA	#$00
+	TAB
+
+	LDA	#$80
+	TRB	$D054
+
+	LDA	#27
+	STA	$D011
+
+	LDA	#200
+	STA	$D016
+
+	LDA	#20
+	STA	$D018
+
+	LDA	#$00
+	STA	$D060
+	LDA	#$04
+	STA	$D061
+	LDA	#$00
+	STA	$D062
+
+	LDA	#$80
+	TRB	$D031
+
+	LDA	#$05
+	TRB	$D054
+
+	LDA	#$08
+	TRB	$D031
+
+;	Set VIC line size
+	LDA #$28
+	STA $D058
+	LDA #$00
+	STA $D059
+
+;	Set VIC window w
+	LDA	#$28
+	STA	$D05E
+
+;	CHRYSCL
+	LDA	#$01
+	STA	$D05B
+
+;	Set VIC window h
+	LDA	#$19
+	STA	$D07B
 
 	;; Get pointer to file name
 	;; sp here is the ca65 sp ZP variable, not the stack pointer of a 4510
@@ -100,7 +172,7 @@ _mega65_dos_exechelper:
 @lfr1:	lda loadfile_routine,x
 	sta $0340,x
 	inx
-	cpx #$30
+	cpx #$34
 	bne @lfr1
 
 	;; Call helper routine
@@ -117,14 +189,21 @@ loadfile_routine:
 	LDA	#$2F
 	STA	$00
 
-	LDA	#$07
+	LDA	#$37
 	STA	$01
 
 ;	LDA	#$41
 ;	STA	$00
 
 	LDA	#$00
+	STA	$D01A
+
+	LDA	$DC0D
+	ASL	$D019
+
+	LDA	#$FF
 	STA	$DC0D
+
 
 	; Now load the file to $0400 over the screen
         lda #$36
@@ -139,8 +218,13 @@ loadfile_routine:
         TXS
 
         ldz     #$00
+;@halt:
+;		INC	$D020
+;		BRA	@halt
+
         CLI
-	jmp $080d
+		jmp $080D
+
 	rts
 @error:
 		LDA	#$02
