@@ -2877,7 +2877,7 @@ freezeListBox_t lbx_freeze_control3C = {
 		0x00,//						;accelchar
 //ListBox
 		EVENTPTRNULLREC,
-		DWRDTOFARPTRREC(0x4000, 0x0001),
+		DWRDTOFARPTRREC(0x6000, 0x0001),
 		0x00,
 		0x14,
 		0x00,

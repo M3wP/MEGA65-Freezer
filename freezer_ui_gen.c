@@ -333,7 +333,7 @@ char draw_directory_entry(unsigned char idx) {
 
 void draw_directory_contents(void) {
 	unsigned char x, c, i, n = 0;
-    unsigned long cnt;
+//    unsigned long cnt;
 
 //  lcopy(0x40000L + (selection_number * 64), (unsigned long)disk_name_return, 32);
 
@@ -344,9 +344,14 @@ void draw_directory_contents(void) {
 
     JudeSetPointer(MPTR_WAIT);
 
+
 //  Try to mount it, with border black while working
 //  POKE(0xD020U, 15);
-	
+
+    POKE(0xD080, 0);
+
+    sdcard_reset();
+
     if  (mega65_dos_attachd81(disk_name_return)) {
 //      Mounting the image failed
         POKE(0xD080U, 0x40);
@@ -358,11 +363,16 @@ void draw_directory_contents(void) {
 	    return;
 	}
 
+    while (!(PEEK(0xD082) & 0x01)) {
+        POKE(0xD081, 0x10);
+        usleep(7000);
+    }
+
 //dengland This delay is required or subsequent accesses will silently fail.
 //Moreover, usleep is completely unreliable for this purpose.
-    for (cnt; cnt < 10000; cnt++) {
-        POKE(0xD020U, PEEK(0xD020U));
-    }
+//    for (cnt; cnt < 10000; cnt++) {
+//        POKE(0xD020U, PEEK(0xD020U));
+//    }
 
 //  POKE(0xD020U, 0);
 
@@ -372,16 +382,22 @@ void draw_directory_contents(void) {
 	POKE(0xD080U, 0x60); // motor and LED on
 	POKE(0xD081U, 0x20); // Wait for motor spin up
 
+    while (PEEK(0xD082U) & 0x80) {
+        POKE(0xD020U, PEEK(0xD020U));
+    }
+
 	POKE(0xD084U, 39);
 	POKE(0xD085U, 1);
 	POKE(0xD086U, 0);
 
 	while (PEEK(0xD082U) & 0x80) {
+        POKE(0xD020U, PEEK(0xD020U));
 	}
 
 	POKE(0xD081U, 0x41); // Read sector
 
 	while (PEEK(0xD082U) & 0x80) {
+        POKE(0xD020U, PEEK(0xD020U));
 	}
 
 //  abort if the sector read failed	
@@ -396,6 +412,8 @@ void draw_directory_contents(void) {
 //  (we have to assign the PEEK here, so it doesn't get optimised away)
 	for (x = 0; x < 4; x++)
 		c = PEEK(0xD087U);
+
+    n = 0;
 
 //  Then output title 
 	for (x = 0; x < 16; x++) {
@@ -415,11 +433,13 @@ void draw_directory_contents(void) {
 	POKE(0xD086U, 0);
 
 	while (PEEK(0xD082U) & 0x80) {
+        POKE(0xD020U, PEEK(0xD020U));
 	}
 
 	POKE(0xD081U, 0x41); 
 
 	while (PEEK(0xD082U) & 0x80) {
+        POKE(0xD020U, PEEK(0xD020U));
 	}
 
 //  abort if the sector read failed
@@ -429,6 +449,11 @@ void draw_directory_contents(void) {
 //      POKE(0xD020U, 2);
 		return; 
     }
+
+// Make sure we can see the data
+//        LDA #$80
+//        TRB $D689
+    POKE(0xD689U, PEEK(0xD689) & 0x7F);
 
 //  Skip 1st half of sector
 	x = 0;
@@ -447,11 +472,13 @@ void draw_directory_contents(void) {
 	POKE(0xD086U, 0);
 
 	while (PEEK(0xD082U) & 0x80) {
+        POKE(0xD020U, PEEK(0xD020U));
 	}
 
 	POKE(0xD081U, 0x41); // Read sector
 
 	while (PEEK(0xD082U) & 0x80) {
+        POKE(0xD020U, PEEK(0xD020U));
 	}
 
 //  abort if the sector read failed
@@ -461,6 +488,12 @@ void draw_directory_contents(void) {
 //      POKE(0xD020U, 2);
 		return; 
     }
+
+// Make sure we can see the data
+//        LDA #$80
+//        TRB $D689
+    POKE(0xD689U, PEEK(0xD689) & 0x7F);
+
 
 	for (i = 0; i < 16; i++) {
 		if (!draw_directory_entry(n))
