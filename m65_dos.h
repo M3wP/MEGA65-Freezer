@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 extern char cdecl mega65_dos_chdirroot(void);
-extern char cdecl mega65_dos_chdir(unsigned char* dirname);
+extern char cdecl mega65_dos_chdir(char* dirname);
 extern char cdecl mega65_dos_attachd81(char* image_name);
 extern char cdecl mega65_dos_exechelper(char* filename);
 
