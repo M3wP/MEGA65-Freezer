@@ -25,13 +25,15 @@ HEADERS=	Makefile \
 		frozen_memory.h\
 		ascii.h
 
-M65LIBFILES=	m65_fat32.o\
-		m65_dos.o\
-		m65_hal_mega65.o\
-		m65_mem.o\
-		_m65lib.o
 
-M65LIBHEADERS=	m65_fat32.h\
+M65LIBCCFILES=	m65_fat32.c\
+		m65_dos.c\
+		m65_hal_mega65.c\
+        m65_mem.c
+
+M65LIBASMFILES=	_m65lib.s
+
+M65LIBHEADERFILES=	m65_fat32.h\
 		m65_dos.h\
 		m65_hal.h \
 		m65_mem.h\
@@ -50,9 +52,18 @@ FREEZER.M65:	$(ASSFILES) $(HEADERS) libmega65.a $(TILDAPATH)/lib/libtilda.a
 	$(warning ======== Making: $@)
 	$(CC65) $(COPTS) -o $@ $<
 
-libmega65.a:	$(M65LIBFILES) $(M65LIBHEADERS)
-	$(warning ======== Making: $@)
-	ar65 r $@ $(M65LIBFILES)
+
+libmega65.a:	$(M65LIBCCFILES:.c=.o) $(M65LIBASMFILES:.s=.o) 
+		$(warning ======== Making: $@)
+		ar65 r $@ $(M65LIBCCFILES:.c=.o) $(M65LIBASMFILES:.s=.o) 
+
+$(M65LIBCCFILES:.c=.o): $(M65LIBCCFILES:.c=.s)
+
+$(M65LIBCCFILES:.c=.s): $(M65LIBCCFILES) $(M65LIBHEADERFILES)
+
+$(M65LIBASMFILES:.s=.o):	$(M65LIBASMFILES)
+
+
 
 $(TILDAPATH)/lib/libtilda.a:		
 	$(warning ======== Making: $@)
