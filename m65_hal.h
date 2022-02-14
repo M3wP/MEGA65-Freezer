@@ -10,6 +10,7 @@ extern unsigned char sdhc_card;
 extern uint8_t sector_buffer[512];
 extern unsigned short slot_number;
 
+extern void sdcard_reset(void);
 extern uint32_t sdcard_getsize(void);
 extern void sdcard_open(void);
 extern void sdcard_writesector(const uint32_t sector_number, uint8_t is_multi);
