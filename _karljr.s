@@ -28,6 +28,8 @@
 	.export		__KarlModAttach
 	.export		_KarlObjExcludeState
 	.export		_KarlObjIncludeState
+	.export		__KarlObjIncStateEx
+	.export		__KarlObjExcStateEx
 
 	.export		_KarlDefModPrepare
 	.export		_KarlDefModInit
@@ -240,18 +242,84 @@ __KarlModAttach:
 
 
 ;-----------------------------------------------------------
+__KarlObjExcStateEx:
+;-----------------------------------------------------------
+		LDA	zreg0b0
+		LDX	zreg0b1
+		LDY	zreg0b2
+
+		PHX
+		PHY
+
+		JSR	_KarlObjExcludeState
+
+		PLY
+		PLA
+
+		SEI
+
+		STA	karl_temp0
+		EOR	$FF
+		STA	karl_temp1
+
+		LDZ	#OBJECT::state + 1
+		NOP
+		LDA	(zptrself), Z
+
+		CPY	#$00
+		BEQ	@cont0
+
+		AND	karl_temp0
+		BEQ	@finish
+
+		LDY	#$01
+		STY	karl_changed
+
+		NOP
+		LDA	(zptrself), Z
+
+@cont0:
+		AND	karl_temp1
+
+		NOP
+		STA	(zptrself), Z
+
+@finish:
+		LDA	karl_lock
+		BNE	@exit
+
+	.if DEBUG_NOYIELDIRQ
+	.else
+		CLI
+	.endif
+
+@exit:
+		RTS
+
+;-----------------------------------------------------------
 _KarlObjExcludeState:
 ;-----------------------------------------------------------
+		CMP	#$00
+		BEQ	@exit
+
 		SEI
 
 		STA	karl_temp0
 		EOR	#$FF
 		STA	karl_temp1
 
-		LDA	karl_temp0
-		AND	#(STATE_CHANGED | STATE_DIRTY)
+		LDA	#$00
 		STA	karl_temp2
 
+		LDA	karl_temp0
+		AND	#(STATE_CHANGED | STATE_DIRTY | STATE_PREPARED)
+		CMP	karl_temp0
+		BNE	@begin0
+
+		LDA	#$01
+		STA	karl_temp2
+
+@begin0:
 		LDZ	#OBJECT::state
 		NOP
 		LDA	(zptrself), Z
@@ -310,8 +378,69 @@ _KarlObjExcludeState:
 
 
 ;-----------------------------------------------------------
+__KarlObjIncStateEx:
+;-----------------------------------------------------------
+		LDA	zreg0b0
+		LDX	zreg0b1
+		LDY	zreg0b2
+
+		PHX
+		PHY
+
+		JSR	_KarlObjIncludeState
+
+		PLY
+		PLX
+
+		TXA
+		BEQ	@exit
+
+		SEI
+
+		STX	karl_temp0
+
+		LDZ	#OBJECT::state + 1
+		NOP
+		LDA	(zptrself), Z
+
+		CPY	#$00
+		BEQ	@cont0
+
+		AND	karl_temp0
+		BNE	@finish
+
+		LDY	#$01
+		STY	karl_changed
+
+		NOP
+		LDA	(zptrself), Z
+
+@cont0:
+		ORA	karl_temp0
+
+		NOP
+		STA	(zptrself), Z
+
+
+@finish:
+		LDA	karl_lock
+		BNE	@exit
+
+	.if DEBUG_NOYIELDIRQ
+	.else
+		CLI
+	.endif
+
+@exit:
+		RTS
+
+
+;-----------------------------------------------------------
 _KarlObjIncludeState:
 ;-----------------------------------------------------------
+		CMP	#$00
+		BEQ	@exit
+
 		SEI
 
 		STA	karl_temp0

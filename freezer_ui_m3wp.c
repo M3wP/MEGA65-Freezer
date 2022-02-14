@@ -1187,6 +1187,7 @@ void __fastcall__	FreezeDiskImg1Chg(void) {
 //------------------------------------------------------------------------------
 void __fastcall__	FreezeDrvTypeImgChg(void) {
 	karlDWFarPtr_t data;
+	byte	flg = rbt_freeze_control36._control._element._object.state & STATE_DOWN;
 
 	JudeDefRBtChange();
 
@@ -1194,34 +1195,35 @@ void __fastcall__	FreezeDrvTypeImgChg(void) {
 	data.ptr.hiword = 0;
 	zptrself = data.data;
 
-	if  (rbt_freeze_control36._control._element._object.tag) {
-		KarlObjIncludeState(STATE_ENABLED);
-
-		update_dir_path();
-
-		data.ptr.loword = (word)&lbx_freeze_control3C;
-		data.ptr.hiword = 0;
-		zptrself = data.data;
-
-		if  (lbx_freeze_control3A.selline != 0xFF)
+	if  (flg) {
+		if (rbt_freeze_control36._control._element._object.tag) {
 			KarlObjIncludeState(STATE_ENABLED);
-	} else {
-		KarlObjExcludeState(STATE_ENABLED);
 
-		data.ptr.loword = (word)&lbx_freeze_control3C;
-		data.ptr.hiword = 0;
-		zptrself = data.data;
+			update_dir_path();
 
-		KarlObjExcludeState(STATE_ENABLED);
+			data.ptr.loword = (word)&lbx_freeze_control3C;
+			data.ptr.hiword = 0;
+			zptrself = data.data;
 
-		data.ptr.loword = (word)&btn_freeze_control3B;
-		data.ptr.hiword = 0;
-		zptrself = data.data;
+			if  (lbx_freeze_control3A.selline != 0xFF)
+				KarlObjIncludeState(STATE_ENABLED);
+		} else {
+			KarlObjExcludeState(STATE_ENABLED);
 
-		KarlObjExcludeState(STATE_ENABLED);
+			data.ptr.loword = (word)&lbx_freeze_control3C;
+			data.ptr.hiword = 0;
+			zptrself = data.data;
+
+			KarlObjExcludeState(STATE_ENABLED);
+
+			data.ptr.loword = (word)&btn_freeze_control3B;
+			data.ptr.hiword = 0;
+			zptrself = data.data;
+
+			KarlObjExcludeState(STATE_ENABLED);
+		}
 	}
 }
-
 
 
 //------------------------------------------------------------------------------

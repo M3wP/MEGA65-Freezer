@@ -345,6 +345,7 @@ extern byte _zkarljr[SIZ_ZP_KARLJR];
 #define STATE_PICKED	0x04
 #define STATE_ACTIVE	0x08
 #define STATE_DOWN		0x10
+#define STATE_EXPRESENT	0x0100
 
 #define	STATE_DEFAULT	STATE_ENABLED
 #define	STATE_DEFCTRL	(STATE_VISIBLE | STATE_ENABLED)
@@ -426,6 +427,8 @@ typedef	struct UNIT {
 	} karlUnit_t;
 
 
+extern	unsigned char karl_errorno;
+
 extern void	__fastcall__	KarlInit(void);
 extern void	__fastcall__	KarlASCIIToScreen(void);
 extern void	__fastcall__	KarlGetLastError(void);
@@ -440,11 +443,13 @@ extern void	__fastcall__	KarlDefModInit(void);
 extern void	__fastcall__	KarlDefModChange(void);
 extern void	__fastcall__	KarlDefModRelease(void);
 
+extern void	KarlModAttach(karlFarPtr_t *module);
+extern void	KarlObjExcStateEx(byte changed, word state);
+extern void	KarlObjIncStateEx(byte changed, word state);
 
 extern void	__fastcall__	_KarlModAttach(void);
+extern void	__fastcall__	_KarlObjExcStateEx(void);
+extern void	__fastcall__	_KarlObjIncStateEx(void);
 
-extern void	KarlModAttach(karlFarPtr_t *module);
-
-extern	unsigned char karl_errorno;
 
 #endif

@@ -1885,6 +1885,10 @@ _JudeDefViewInit:
 		LDA	#MPTR_NONE
 		STA	jude_mptrstate
 
+;	Sprite disable
+		LDA	#$00
+		STA	$D015
+
 		MvDWMem	zreg4, jude_mouseram
 
 		LDA	zreg4
@@ -1943,13 +1947,15 @@ _JudeDefViewInit:
 ;	Sprite 8 bytes wide
 		TSB	$D057
 
-;	Workaround BUG 339
+;***FIXME What was this, is it fixed?
+;	Workaround BUG #339
 		LDA	#$08
 		TRB	$D07A
+;---
 
 ;	Sprite enable
 		LDA	#$01
-		TSB	$D015
+		STA	$D015
 
 ;	Sprite position
 		JSR	__MouseMoveSprX

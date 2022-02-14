@@ -51,6 +51,7 @@
 	.import		_karl_errorno
 	.import		_KarlObjExcludeState
 	.import		_KarlObjIncludeState
+	.import		__KarlObjIncStateEx
 ;===========================================================
 
 
@@ -65,6 +66,11 @@ _JudeDefCtlPrepare:
 ;		STA	zreg2b3
 		LDA	#STATE_PREPARED
 		JSR	_KarlObjIncludeState
+
+		LDA	#<STATE_EXPRESENT
+		LDX	#>STATE_EXPRESENT
+		LDY	#$00
+		JSR	__KarlObjIncStateEx
 
 		LDA	#$00
 		STA	_karl_errorno
