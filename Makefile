@@ -1,11 +1,13 @@
 CC65=	cc65
 CL65=	cl65
 
+TILDAPATH=	mega65-tilda-lib
+
 #Can't mix 4510 and 65C02 right now
 #COPTS=	-t c64 -Os --cpu 65c02 -Icc65/include
 COPTS=	-t c64 -Os -Icc65/include -Itilda/inc
 
-LOPTS=	--asm-include-dir cc65/asminc --cfg-path cc65/cfg --lib-path cc65/lib --lib-path tilda/lib
+LOPTS=	--asm-include-dir cc65/asminc --cfg-path cc65/cfg --lib-path cc65/lib --lib-path $(TILDAPATH)/lib
 
 ASSFILES=	freezer.s\
 		freezer_ui.s\
@@ -36,9 +38,9 @@ M65LIBHEADERS=	m65_fat32.h\
 		ascii.h
 
 
-FREEZER.M65:	$(ASSFILES) $(HEADERS) libmega65.a tilda/lib/libtilda.a
+FREEZER.M65:	$(ASSFILES) $(HEADERS) libmega65.a $(TILDAPATH)/lib/libtilda.a
 	$(warning ======== Making: $@)
-	$(CL65) $(COPTS) $(LOPTS) --config tilda/tilda.cfg -vm --add-source -Ln freezer.vice -l freezer.list -m freezer.map -o FREEZER.M65 $(ASSFILES) libmega65.a tilda/lib/libtilda.a
+	$(CL65) $(COPTS) $(LOPTS) --config $(TILDAPATH)/tilda.cfg -vm --add-source -Ln freezer.vice -l freezer.list -m freezer.map -o FREEZER.M65 $(ASSFILES) libmega65.a $(TILDAPATH)/lib/libtilda.a
 
 %.o:	%.s
 	$(warning ======== Making: $@)
@@ -52,9 +54,9 @@ libmega65.a:	$(M65LIBFILES) $(M65LIBHEADERS)
 	$(warning ======== Making: $@)
 	ar65 r $@ $(M65LIBFILES)
 
-tilda/lib/libtilda.a:		
+$(TILDAPATH)/lib/libtilda.a:		
 	$(warning ======== Making: $@)
-	make -C tilda
+	make -C $(TILDAPATH)
 
 run:	FREEZER.M65
 	m65 -l com6 -s 2000000 -F -4 -r $<
