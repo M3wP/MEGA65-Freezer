@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <stdint.h>
 
-#include "m65_dos.h"
+#include "fileio.h"
 
 //Note:  This is another one of those cobbled in asm support routines.
 extern void unfreeze_slot(unsigned short);

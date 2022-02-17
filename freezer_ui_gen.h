@@ -9,7 +9,7 @@ extern unsigned short dir_depth;
 extern unsigned char drive_id;
 extern char disk_name_return[32];
 extern unsigned char disk_filecnt;
-
+extern unsigned short slot_number;
 
 extern unsigned char c64_palette[64];
 

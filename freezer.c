@@ -1,7 +1,8 @@
-#include	"jude.h"
+#include	<memory.h>
+#include	<jude.h>
+
 #include 	"freezer_ui.h"
 #include 	"freezer.h"
-#include	"m65_mem.h"
 
 
 void	action(void) {

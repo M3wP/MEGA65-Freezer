@@ -1,6 +1,7 @@
-#include "m65_hal.h"
-#include "m65_mem.h"
-#include "m65_fat32.h"
+#include <hal.h>
+#include <memory.h>
+#include <sdcard.h>
+
 #include "frozen_memory.h"
 
 struct freeze_region_t freeze_region_list[MAX_REGIONS];
@@ -36,7 +37,7 @@ uint32_t find_thumbnail_offset(void)
     region_length = freeze_region_list[i].region_length & REGION_LENGTH_MASK;
 
 
-    if (freeze_region_list[i].address_base == 0x0001000L) {
+    if (freeze_region_list[i].address_base == 0x0001000U) {
       // Found it
       return freeze_slot_offset;
     }
@@ -66,11 +67,10 @@ uint32_t address_to_freeze_slot_offset(uint32_t address)
       skip = 1;
     relative_address = address - freeze_region_list[i].address_base;
 
-//***FIXME Is this address a typo?
-    if (freeze_region_list[i].address_base == 0x1000L) {
+    if (freeze_region_list[i].address_base == 0x1000U) {
       // Thumbnail region: Treat specially so that we can examine it
       // We give the fictional mapping of $FF54xxx
-      if ((address & 0xFFFF000L) == 0xFF54000L) {
+      if ((address & 0xFFFF000U) == 0xFF54000U) {
         relative_address = address & 0xFFF;
         freeze_slot_offset = freeze_slot_offset << 9;
         freeze_slot_offset += (relative_address & 0xFFF);
@@ -120,7 +120,7 @@ unsigned char freeze_peek(uint32_t addr)
   // XXX - We should cache sectors
 
   // Read the sector
-  sdcard_readsector(freeze_slot_start_sector + freeze_slot_offset);
+  mega65_sdcard_readsector(freeze_slot_start_sector + freeze_slot_offset);
 
   // Return the byte
   return sector_buffer[offset & 0x1ff];
@@ -143,7 +143,7 @@ unsigned char freeze_fetch_sector(uint32_t addr, unsigned char* buffer)
   // XXX - We should cache sectors
 
   // Read the sector
-  sdcard_readsector(freeze_slot_start_sector + freeze_slot_offset);
+  mega65_sdcard_readsector(freeze_slot_start_sector + freeze_slot_offset);
 
   // Return the byte
   lcopy((long)&sector_buffer[offset], (long)buffer, 512);
@@ -171,7 +171,7 @@ unsigned char freeze_fetch_sector_32(uint32_t addr, uint32_t dest, unsigned int 
   // XXX - We should cache sectors
 
   // Read the sector
-  sdcard_readsector(freeze_slot_start_sector + freeze_slot_offset);
+  mega65_sdcard_readsector(freeze_slot_start_sector + freeze_slot_offset);
 
   // Return the byte
   lcopy((long)&sector_buffer[offset], dest, count);
@@ -195,7 +195,7 @@ unsigned char freeze_store_sector(uint32_t addr, unsigned char* buffer)
   lcopy((long)buffer, (long)&sector_buffer[offset], 512);
 
   // Write the sector
-  sdcard_writesector(freeze_slot_start_sector + freeze_slot_offset, 0);
+  mega65_sdcard_writesector(freeze_slot_start_sector + freeze_slot_offset, 0);
 
   return 0;
 }
@@ -221,7 +221,7 @@ unsigned char freeze_store_sector_32(uint32_t addr, uint32_t src, unsigned int c
   lcopy(src, (long)&sector_buffer[offset], count);
 
   // Write the sector
-  sdcard_writesector(freeze_slot_start_sector + freeze_slot_offset, 0);
+  mega65_sdcard_writesector(freeze_slot_start_sector + freeze_slot_offset, 0);
 
   return 0;
 }
@@ -243,11 +243,11 @@ void freeze_poke(uint32_t addr, unsigned char v)
   // XXX - We should cache sectors
 
   // Read the sector
-  sdcard_readsector(freeze_slot_start_sector + freeze_slot_offset);
+  mega65_sdcard_readsector(freeze_slot_start_sector + freeze_slot_offset);
 
   // Set the byte
   sector_buffer[offset & 0x1ff] = v;
 
   // Write sector back
-  sdcard_writesector(freeze_slot_start_sector + freeze_slot_offset, 0);
+  mega65_sdcard_writesector(freeze_slot_start_sector + freeze_slot_offset, 0);
 }

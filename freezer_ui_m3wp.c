@@ -1,5 +1,7 @@
-#include "m65_hal.h"
-#include "m65_mem.h"
+#include <hal.h>
+#include <memory.h>
+#include <sdcard.h>
+#include <fileio.h>
 
 #include "frozen_memory.h"
 
@@ -619,7 +621,7 @@ void 	__fastcall__	FreezeImgLstSelect(void) {
 
 	if (disk_name_return[0] == '/') {
 //		Its a directory
-        if (!mega65_dos_chdir(&disk_name_return[1])) {
+        if (!chdir(&disk_name_return[1])) {
         	if  (disk_name_return[2] == '.') 
 				dir_depth--;
 			else {
@@ -724,6 +726,15 @@ void __fastcall__	FreezeModPrepare(void) {
   
  //	Enable extended attributes so we can use reverse
   	POKE(0xD031U, PEEK(0xD031U) | 0x20);
+
+//	Fix position for PAL/NTSC
+  	if  (PEEK(0xD06F) & 0x80) {
+	    POKE(0xD048, 0x2A);
+	    POKE(0xD04E, 0x2A);
+  	} else {
+	    POKE(0xD048, 0x69);
+	    POKE(0xD04E, 0x69);
+  	}
 
  // Correct horizontal scaling
  // POKE(0xD05AU, 0x78);
@@ -1110,7 +1121,7 @@ void	init_disk_select(byte id) {
 	pathstack[0][0] = '/';
 	pathstack[0][1] = 0;
 
-	mega65_dos_chdirroot();
+	chdirroot();
 	dir_depth = 0;
 
 	update_dir_path();
@@ -1235,7 +1246,7 @@ void __fastcall__	FreezeDirUpChange(void) {
 	JudeDefCtlChange();
 
 	if (flg) {
-		mega65_dos_chdir("..");
+		chdir("..");
 
 		dir_depth--;
 		disk_filecnt = 0;
@@ -1297,45 +1308,46 @@ void __fastcall__	FreezeDrvAcceptChg(void) {
 //			First, clear flags for the F011 image
     		if  (drive_id == 0) {
 //				Clear flags for drive 0
-        		lpoke(0xffd368bL, lpeek(0xffd368bL) & 0xb8);
+        		lpoke(0xffd368bU, lpeek(0xffd368bU) & 0xb8);
 
 //				there seem to be an issue reliably using lpoke/lpeek here
 //				so for now we repeat to ensure we have what we want
-        		while (lpeek(0xffd36a1L) & 1) {
-         			lpoke(0xffd36a1L, lpeek(0xffd36a1L) & 0xfe);
+        		while (lpeek(0xffd36a1U) & 1) {
+         			lpoke(0xffd36a1U, lpeek(0xffd36a1U) & 0xfe);
         		}
     		}
     		else if (drive_id == 1) {
 //				Clear flags for drive 1
-        		lpoke(0xffd368bL, lpeek(0xffd368bL) & 0x47);
-        		while (lpeek(0xffd36a1L) & 4) {
-        			lpoke(0xffd36a1L, lpeek(0xffd36a1L) & 0xfb);
+        		lpoke(0xffd368bU, lpeek(0xffd368bU) & 0x47);
+        		while (lpeek(0xffd36a1U) & 4) {
+        			lpoke(0xffd36a1U, lpeek(0xffd36a1U) & 0xfb);
         		}
     		}
 
 			if (rgp_freeze_control34._control._element._object.tag) {
 				if (drive_id == 0)
-              		lpoke(0xffd368bL, (lpeek(0xffd368bL) & 0xb8) + 0x01);
+              		lpoke(0xffd368bU, (lpeek(0xffd368bU) & 0xb8) + 0x01);
             	if (drive_id == 1)
-              		lpoke(0xffd368bL, (lpeek(0xffd368bL) & 0x47) + 0x08);
+              		lpoke(0xffd368bU, (lpeek(0xffd368bU) & 0x47) + 0x08);
           	} else if (rbt_freeze_control35._control._element._object.tag) {
 				if (drive_id == 0)
 //					Use internal drive (drive 0 only)
-	            	while (!(lpeek(0xffd36a1L) & 1)) {
-              			lpoke(0xffd36a1L, lpeek(0xffd36a1L) | 0x01);
+	            	while (!(lpeek(0xffd36a1U) & 1)) {
+              			lpoke(0xffd36a1U, lpeek(0xffd36a1U) | 0x01);
               		}
 
             	if (drive_id == 1)
 //					Use 1565 external drive (drive 1 only)
-            		while (!(lpeek(0xffd36a1L) & 4)) {
-              			lpoke(0xffd36a1L, lpeek(0xffd36a1L) | 0x04);
+            		while (!(lpeek(0xffd36a1U) & 4)) {
+              			lpoke(0xffd36a1U, lpeek(0xffd36a1U) | 0x04);
               		}
             } else {
           		if  (drive_id == 0)
-            		lpoke(0xffd368bL, (lpeek(0xffd368bL) & 0xb8) + 0x07);
+            		lpoke(0xffd368bU, (lpeek(0xffd368bU) & 0xb8) + 0x07);
           		if (drive_id == 1)
-            		lpoke(0xffd368bL, (lpeek(0xffd368bL) & 0x47) + 0x38);
-          		if (mega65_dos_attachd81(disk_name_return)) {
+            		lpoke(0xffd368bU, (lpeek(0xffd368bU) & 0x47) + 0x38);
+
+          		if (attachd81(disk_name_return)) {
 //					Mounting the image failed
           			ok = 0;
         			POKE(0xD080U, 0x40);
@@ -1343,13 +1355,13 @@ void __fastcall__	FreezeDrvAcceptChg(void) {
 //					Mark drive as having nothing in it
             		if (drive_id == 0) {
 //						Clear flags for drive 0
-              			lpoke(0xffd368bL, lpeek(0xffd368bL) & 0xb8);
-              			lpoke(0xffd36a1L, lpeek(0xffd36a1L) & 0xfe);
+              			lpoke(0xffd368bU, lpeek(0xffd368bU) & 0xb8);
+              			lpoke(0xffd36a1U, lpeek(0xffd36a1U) & 0xfe);
             		}
             		else if (drive_id == 1) {
 //						Clear flags for drive 1
-              			lpoke(0xffd368bL, lpeek(0xffd368bL) & 0x47);
-              			lpoke(0xffd36a1L, lpeek(0xffd36a1L) & 0xfb);
+              			lpoke(0xffd368bU, lpeek(0xffd368bU) & 0x47);
+              			lpoke(0xffd36a1U, lpeek(0xffd36a1U) & 0xfb);
             		}            	
             	} else {
 //					Mount succeeded, now seek to track 0 to make sure DOS
@@ -1369,17 +1381,18 @@ void __fastcall__	FreezeDrvAcceptChg(void) {
 	  					x--;
 					}            		
           			
-          			request_freeze_region_list();
+           			request_freeze_region_list();
 
 //					Replace disk image name in process descriptor block
            			for (i = 0; (i < 32) && disk_name_return[i]; i++)
-                		freeze_poke(0xFFFBD00L + 0x15 + i, disk_name_return[i]);
+                		freeze_poke(0xFFFBD00U + 0x15 + i, disk_name_return[i]);
+						
 //					Update length of name
-              		freeze_poke(0xFFFBD00L + 0x13, i);
+              		freeze_poke(0xFFFBD00U + 0x13, i);
 
 //					Pad with spaces as required by hypervisor
               		for (; i < 32; i++)
-                		freeze_poke(0xFFFBD00L + 0x15 + i, ' ');
+                		freeze_poke(0xFFFBD00U + 0x15 + i, ' ');
             	}
 			}
 

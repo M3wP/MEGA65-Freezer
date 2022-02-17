@@ -1,7 +1,10 @@
-#include	<string.h>
+#include <string.h>
 
-#include "m65_mem.h"
-#include "m65_hal.h"
+#include <memory.h>
+#include <hal.h>
+#include <sdcard.h>
+#include "fileio.h"
+
 #include "frozen_memory.h"
 #include "ascii.h"
 
@@ -16,6 +19,7 @@ unsigned short dir_depth = 0;
 unsigned short drive_id = 0;
 char disk_name_return[32] = "";
 unsigned char disk_filecnt = 0;
+unsigned short slot_number = 0;
 
 unsigned char thumbchars[6][20];
 
@@ -109,7 +113,7 @@ void save_to_slot(void) {
 	for (i = 0; i < 1024; i += 128) {
 //		POKE(0xD020U, 0x0e);
 		for (j = 0; j < 128; j++) {
-			sdcard_readsector(freeze_slot_start_sector + i + j);
+			mega65_sdcard_readsector(freeze_slot_start_sector + i + j);
 			lcopy((unsigned long)sector_buffer, 0x40000U + (j << 9), 512);
 		}
 //		POKE(0xD020U, 0x00);
@@ -117,16 +121,16 @@ void save_to_slot(void) {
 			lcopy(0x40000U + (j << 9), (unsigned long)sector_buffer, 512);
 #ifdef USE_MULTIBLOCK_WRITE
 			if (!j)
-					sdcard_writesector(dest_freeze_slot_start_sector + i + j, 1);
+					mega65_sdcard_writesector(dest_freeze_slot_start_sector + i + j, 1);
 	       	else
-					sdcard_writenextsector();
+					mega65_sdcard_writenextsector();
 #else
-			sdcard_writesector(dest_freeze_slot_start_sector + i + j, 0);
+			mega65_sdcard_writesector(dest_freeze_slot_start_sector + i + j, 0);
 #endif
 		}
 #ifdef USE_MULTIBLOCK_WRITE
 //      Close multi-sector write job
-		sdcard_writemultidone();
+		mega65_sdcard_writemultidone();
 #endif
 	}
 
@@ -151,30 +155,30 @@ void scan_directory(unsigned char id)
 	while (dirent && ((unsigned short)dirent != 0xffffU)) {
 		x = strlen(dirent->d_name);
 
-//	check DIR attribute of dirent
-	if (dirent->d_type & 0x10) {
+//		check DIR attribute of dirent
+		if (dirent->d_type & 0x10) {
 
-//	File is a directory
-	if (x < 60) {
-		lfill(0x40000L + (file_count * 64), ' ', 64);
-		lcopy((long)&dirent->d_name[0], 0x40000L + 1 + (file_count * 64), x);
-//		Put / at the start of directory names to make them obviously different
-		lpoke(0x40000L + (file_count * 64), '/');
-//		Don't list "." directory pointer
-		if (strcmp(".", dirent->d_name))
-			file_count++;
-		}
-	} else if (x > 4) {
-        if  ((!strncmp(&dirent->d_name[x - 4], ".D81", 4))
-        ||   (!strncmp(&dirent->d_name[x - 4], ".d81", 4))
-		||   (!strncmp(&dirent->d_name[x - 4], ".D65", 4))
-        ||   (!strncmp(&dirent->d_name[x - 4], ".d65", 4))) {
-//		File is a disk image
+//		File is a directory
+		if (x < 60) {
 			lfill(0x40000L + (file_count * 64), ' ', 64);
-			lcopy((long)&dirent->d_name[0], 0x40000L + (file_count * 64), x);
-			file_count++;
+			lcopy((long)&dirent->d_name[0], 0x40000L + 1 + (file_count * 64), x);
+//			Put / at the start of directory names to make them obviously different
+			lpoke(0x40000L + (file_count * 64), '/');
+//			Don't list "." directory pointer
+			if (strcmp(".", dirent->d_name))
+				file_count++;
 			}
-		}
+		} else if (x > 4) {
+			if  ((!strncmp(&dirent->d_name[x - 4], ".D81", 4))
+			||   (!strncmp(&dirent->d_name[x - 4], ".d81", 4))
+			||   (!strncmp(&dirent->d_name[x - 4], ".D65", 4))
+			||   (!strncmp(&dirent->d_name[x - 4], ".d65", 4))) {
+//				File is a disk image
+				lfill(0x40000L + (file_count * 64), ' ', 64);
+				lcopy((long)&dirent->d_name[0], 0x40000L + (file_count * 64), x);
+				file_count++;
+				}
+			}
 
 		dirent = readdir(dir);
 	}
@@ -350,9 +354,9 @@ void draw_directory_contents(void) {
 
     POKE(0xD080, 0);
 
-    sdcard_reset();
+    mega65_sdcard_reset();
 
-    if  (mega65_dos_attachd81(disk_name_return)) {
+    if  (attachd81(disk_name_return)) {
 //      Mounting the image failed
         POKE(0xD080U, 0x40);
 //	    POKE(0xD020U, 2);
@@ -363,16 +367,11 @@ void draw_directory_contents(void) {
 	    return;
 	}
 
+//dengland This delay is required or subsequent accesses will silently fail.
     while (!(PEEK(0xD082) & 0x01)) {
         POKE(0xD081, 0x10);
         usleep(7000);
     }
-
-//dengland This delay is required or subsequent accesses will silently fail.
-//Moreover, usleep is completely unreliable for this purpose.
-//    for (cnt; cnt < 10000; cnt++) {
-//        POKE(0xD020U, PEEK(0xD020U));
-//    }
 
 //  POKE(0xD020U, 0);
 
@@ -414,6 +413,7 @@ void draw_directory_contents(void) {
 		c = PEEK(0xD087U);
 
     n = 0;
+
 
 //  Then output title 
 	for (x = 0; x < 16; x++) {
@@ -460,13 +460,14 @@ void draw_directory_contents(void) {
 	do
 		c = PEEK(0xD087U);
 	while (++x);
-	
+
+
 //  begin drawing on row 1 of screen
 //  x = 1; 
 	for (i = 0; i < 8; i++)
 		if (!draw_directory_entry(n))
 			n++;
-    
+
 	POKE(0xD084U, 39);
 	POKE(0xD085U, 3);
 	POKE(0xD086U, 0);
@@ -484,6 +485,12 @@ void draw_directory_contents(void) {
 //  abort if the sector read failed
 	if (PEEK(0xD082U) & 0x18) {
         POKE(0xD080U, 0x40);
+
+//dengland We need to switch it back here for some ungodly reason
+//maybe because we changed it and the sd card routines aren't 
+//fixing it.
+	    POKE(0xD689U, PEEK(0xD689) | 0x80);
+
         JudeSetPointer(MPTR_NORMAL);
 //      POKE(0xD020U, 2);
 		return; 
@@ -503,6 +510,11 @@ void draw_directory_contents(void) {
 	}
 
     disk_filecnt = n;
+
+//dengland We need to switch it back here for some ungodly reason
+//maybe because we changed it and the sd card routines aren't 
+//fixing it.
+	POKE(0xD689U, PEEK(0xD689) | 0x80);
 
 // Turn floppy LED and motor back off
 	POKE(0xD080U, 0);
@@ -740,7 +752,7 @@ void draw_thumbnail(void)
 	}
 	// Copy thumbnail memory to buffer
 	for (i = 0; i < 8; i++) {
-		sdcard_readsector(freeze_slot_start_sector + thumbnail_sector + i);
+		mega65_sdcard_readsector(freeze_slot_start_sector + thumbnail_sector + i);
 		lcopy((long)sector_buffer, (long)thumbnail_buffer + (i * 0x200), 0x200);
 	}
 
