@@ -1,6 +1,6 @@
-[submodule "mega65-tilda-lib"]
-	path = mega65-tilda-lib
-	url = https://github.com/M3wP/mega65-tilda-lib.git
 [submodule "mega65-libc"]
 	path = mega65-libc
 	url = https://github.com/M3wP/mega65-libc
+[submodule "mega65-tilda-lib"]
+	path = mega65-tilda-lib
+	url = https://github.com/M3wP/mega65-tilda-lib
